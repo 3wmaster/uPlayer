@@ -1,0 +1,378 @@
+.combinedPlayer {
+  position:relative;
+  left:0;
+  top:0;
+  display:block;
+  overflow:hidden;
+  box-sizing:border-box;
+  min-width:280px;
+  min-height:158px;
+  padding-top:56.25%;
+  font: 400 15px/1.32 Helvetica,Arial;
+
+  &_preview {
+    position:absolute;
+    left:0;
+    top:0;
+    display:block;
+    width:100%;
+    height:100%;
+    background-size:cover;
+    background-position: 50% 50%;
+    transition: .5s;
+  }
+
+  &_shadow {
+    position:absolute;
+    left:0;
+    top:0;
+    display:block;
+    width:100%;
+    height:100%;
+
+    &:before {
+      content:'';
+      position:absolute;
+      left:0;
+      top:0;
+      width:100%;
+      height:15%;
+      background: linear-gradient(to bottom, rgba(31,31,31,0.4) 0%,rgba(31,31,31,0.22) 61%,rgba(31,31,31,0) 100%);
+      transition: .7s;
+    }
+
+    &:after {
+      content:'';
+      position:absolute;
+      left:0;
+      bottom:0;
+      width:100%;
+      height:30%;
+      background: linear-gradient(to bottom, rgba(31,31,31,0) 0%,rgba(31,31,31,1) 100%);
+      transition: .7s;
+
+      .main-reverseScheme & {
+        background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+      }
+    }
+  }
+
+  &_playBtns {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display:table;
+    border-collapse:collapse;
+    width: 100%;
+    height: 100%;
+    font-size:9px;
+
+    &_frame {
+      display:table-cell;
+      vertical-align:middle;
+      text-align:center;
+    }
+  }
+
+  &_trailerBtn {
+      display:inline-block;
+      min-width:8.34em;
+      min-height:8.34em;
+      background-color:rgba(0,0,0,.5);
+      border-radius:4.17em;
+      color:#fff;
+      text-align:center;
+      outline: none;
+
+     &:before {
+       content:'';
+       display:inline-block;
+       vertical-align: middle;
+       width:0px;
+       height:8.34em;
+       margin-right:-3px;
+
+     }
+
+     &_text {
+       display:inline-block;
+       vertical-align:middle;
+       font-size: .87em;
+       font-weight:bold;
+       margin-right:.5em;
+     }
+
+     &_symbol {
+       display:inline-block;
+       vertical-align:middle;
+       width: 1.081em;
+       height: 1em;
+       font-size: .8em;
+       fill:#fff;
+     }
+
+    &:hover {
+      color:#fff;
+    }
+   }
+
+  &_onlineBtn {
+    display:inline-block;
+    min-height:8.34em;
+    margin-right: 1.5em;
+    padding: 0 3em;
+    background-color:rgba(220,71,0,.85);
+    border-radius:4.17em;
+    color:#fff;
+    text-align:center;
+    outline: none;
+
+    &:before {
+      content:'';
+      display:inline-block;
+      vertical-align: middle;
+      width:0px;
+      height:8.34em;
+      margin-right:-3px;
+    }
+
+    &_text {
+      display:inline-block;
+      vertical-align:middle;
+      font-size: 1.2em;
+      font-weight:bold;
+      margin-left:1em;
+      text-align:left;
+    }
+
+    &_symbol {
+      display:inline-block;
+      vertical-align:middle;
+      width: 1.081em;
+      height: 1em;
+      font-size: 3em;
+      fill:#fff;
+    }
+
+    &:hover {
+      color:#fff;
+    }
+  }
+
+  &_playBtn {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display:block;
+    width: 100%;
+    height: 100%;
+    background:url(/static/img/base/px.gif);
+
+    &_circle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      display: block;
+      width: 12%;
+      padding-top: 12%;
+      margin: -8% 0 0 -6%;
+      background-color: #fff;
+      background-color: rgba(255,255,255,.2);
+      border-radius: 50%;
+    }
+
+    &_symbol {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 43.24%;
+      height: 40%;
+      margin: -20% 0 0 -16%;
+      -webkit-transition: fill .7s;
+      fill:#fff;
+      transition: fill .7s;
+    }
+
+    &:hover .combinedPlayer_playBtn_symbol {
+      fill: #cd250e;
+    }
+  }
+
+  &_youtube {
+    position: relative;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border:none;
+  }
+
+  &_insert {
+    display:none;
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    background: url(//video.kinoafisha.info/i/player/preloader.gif?2) 50% 50% no-repeat #303030;
+  }
+
+  &_header {
+    display:none;
+  }
+
+  &_previewCat {
+    display:inline-block;
+    vertical-align:top;
+    margin-top: .46em;
+    font-size:.87em;
+    color:#fff;
+    color:rgba(255,255,255,.6);
+  }
+
+  &.js-active {
+    /*height:auto;*/
+
+    .combinedPlayer_preview {
+      visibility:hidden;
+      opacity:0;
+    }
+
+    .combinedPlayer_insert {
+      display:block;
+      transition:all 1ms linear .5s;
+    }
+  }
+
+  @media all and (min-width: 400px) {
+    &_header {
+      position:absolute;
+      left:0;
+      top:0;
+      display:table;
+      width:100%;
+      border-collapse:collapse;
+      color:#fff;
+      font-size:12px;
+
+      &_left {
+        display:table-cell;
+        vertical-align:top;
+        padding: 15px 30px;
+        text-align:left;
+      }
+
+      &_right {
+        display:table-cell;
+        vertical-align:top;
+        padding: 1em 2em;
+        text-align:right;
+        white-space: nowrap;
+      }
+
+      &_age {
+        fill: #fff;
+        fill: rgba(255,255,255,.3);
+        font-size: 2em;
+        width: 1em;
+        display: inline-block;
+        height: 1em;
+        margin:0 0 0 1.33em;
+      }
+
+      &_category {
+        display: inline-block;
+        vertical-align: top;
+        margin: .54em 0 0 .77em;
+        font-size: .87em;
+        color: #fff;
+        color: rgba(255,255,255,.6);
+        white-space:normal;
+      }
+
+      &_allVideoLink {
+        position: relative;
+        left: 0;
+        top: 0;
+        display: inline-block;
+        vertical-align:top;
+        min-height: 2.272em;
+        margin:0 0 0 .77em;
+        padding: .4em 1em;
+        border: 1px solid transparent;
+        background: rgba(255,255,255,.3);
+        color:#fff;
+        border-radius: 1.3em;
+        box-sizing: border-box;
+        font-size: .87em;
+        font-weight: 700;
+        transition: background-color .7s,border-color .7s,color .7s;
+        text-decoration:none;
+
+        &:hover {
+          background-color:#cd250e;
+          color:#fff;
+        }
+      }
+    }
+  }
+
+  @media all and (min-width: 600px) {
+    &_header {
+      font-size: 15px;
+    }
+
+    &_playBtns {
+      font-size:15px;
+    }
+  }
+
+
+  &-film {
+    margin: 0 0 -115px;
+    padding-top: 42.42%;
+    transition: .5s;
+
+    .combinedPlayer_header {
+
+    }
+
+    &.js-active {
+      padding-top:56.25%;
+      margin-bottom:20px;
+    }
+  }
+
+  &-iframe {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    padding-top:0;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
