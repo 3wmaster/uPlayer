@@ -268,8 +268,7 @@ var CombinedPlayer = (function () {
 
         if (this.isShowAdv) this._getAdvData();else this.countPLayers++;
 
-        if (this.data.youtube) this._getYoutubeData(); //this._createYoutubePlayer();
-        else this._getHTMLData(); //this._createHTMLPlayer();
+        if (this.data.youtube) this._getYoutubeData();else this._getHtmlData();
     };
 
     CombinedPlayer.prototype._checkInitPlayers = function _checkInitPlayers() {
@@ -320,13 +319,14 @@ var CombinedPlayer = (function () {
 
         if (this.oAdvPlayer && this.isShowAdv) {
             this.oAdvPlayer.start();
-            //this.oHTMLPlayer.initialize();
-            this.oYoutubePlayer.initialize();
+
+            /* for IOS */
+            if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
 
             this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
             this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
         } else if (this.oHTMLPlayer) {
-                this.oHTMLPlayer.start(data);
+                this.oHTMLPlayer.start();
                 this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
             } else {
                 this.oYoutubePlayer.start();
@@ -351,6 +351,25 @@ var CombinedPlayer = (function () {
         image.src = 'https://api.' + path + '/player/stat/?trailer_id=' + this.data.trailer_id + '&host=' + this.data.host + '&mobile=' + uPlayer.isMobile + '&percent=' + persent;
         image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
         document.body.appendChild(image);
+    };
+
+    CombinedPlayer.prototype._getHtmlData = function _getHtmlData() {
+        var self = this,
+            path = this.data.isDev ? 'kinoafishaspb.ru' : 'kinoafisha.info',
+            _onSuccess = function _onSuccess(dataApi) {
+            self._onSuccessGetHtmlData.call(self, dataApi);
+        },
+            _onError = function _onError() {};
+
+        //
+        this.oHTMLPlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */ /* TODO не нужно, потому что все данные теперь подгружаются заранее */
+        if (this.HTMLDataApi) _onSuccess(this.HTMLDataApi);else {
+            _jsScriptRequest.scriptRequest('//api.' + path + '/player/info/' + this.data.trailer_id + '/', function (dataApi) {
+                _onSuccess(dataApi);
+            }, function () {
+                _onError();
+            });
+        }
     };
 
     CombinedPlayer.prototype._getYoutubeData = function _getYoutubeData() {
@@ -462,21 +481,30 @@ var CombinedPlayer = (function () {
         x.send(null);
     };
 
+    CombinedPlayer.prototype._onSuccessGetHtmlData = function _onSuccessGetHtmlData(data) {
+        var self = this;
+        if (!self.oHTMLPlayer) return false; /* произошло удаление или abort */
+
+        self.oHTMLPlayer = new _jsHTMLPlayer2['default'](self, data);
+        self.oHTMLPlayer.afterEnd = function () {
+            self._returnOriginalView.call(self, 'oHTMLPlayer');
+        };
+        self._checkInitPlayers.call(self);
+    };
+
     CombinedPlayer.prototype._onSuccessGetAdvData = function _onSuccessGetAdvData(data) {
         var self = this;
         if (!this.oAdvPlayer) return false;
         self.oAdvPlayer = new _jsAdvPlayer2['default'](self, data); /* при создании объекта проиходит вставка нужной разметки и инициализация плеера.(IOS) Сами Данные не вставляются */
         self.oAdvPlayer.afterEnd = function () {
-            if (self.oYoutubePlayer) {
-                self.oYoutubePlayer.start();
-                self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
-            }
+            if (self.oYoutubePlayer) self.oYoutubePlayer.start();else self.oHTMLPlayer.start();
+
+            self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         };
         self.oAdvPlayer.afterSkip = function () {
-            if (self.oYoutubePlayer) {
-                self.oYoutubePlayer.start();
-                self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
-            }
+            if (self.oYoutubePlayer) self.oYoutubePlayer.start();else self.oHTMLPlayer.start();
+
+            self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         };
         self.oAdvPlayer.afterClicking = function () {
             self.oAdvPlayer.abort();
@@ -497,36 +525,6 @@ var CombinedPlayer = (function () {
         self.oYoutubePlayer.afterEnd = function () {
             self._returnOriginalView.call(self, 'oYoutubePlayer');
         };
-    };
-
-    CombinedPlayer.prototype._createHTMLPlayer = function _createHTMLPlayer() {
-        var self = this,
-            path = this.data.isDev ? 'kinoafishaspb.ru' : 'kinoafisha.info',
-            _onSuccess = function _onSuccess(dataApi) {
-            self.HTMLDataApi = dataApi;
-            console.log(self.oHTMLPlayer);
-            if (!self.oHTMLPlayer) return false; /* произошло удаление или abort */
-
-            self.oHTMLPlayer = new _jsHTMLPlayer2['default'](self);
-            self.oHTMLPlayer.afterEnd = function () {
-                self._returnOriginalView.call(self, 'oHTMLPlayer');
-            };
-            self.oHTMLPlayer.afterAbort = function () {
-                self._returnOriginalView.call(self, 'oHTMLPlayer');
-            };
-        },
-            _onError = function _onError() {};
-
-        //
-        this.oHTMLPlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */ /* TODO не нужно, потому что все данные теперь подгружаются заранее */
-        if (this.HTMLDataApi) _onSuccess(this.HTMLDataApi);else {
-            /* TODO о время загрузки белый экран. Нужно показывать прелоадер */
-            _jsScriptRequest.scriptRequest('//api.' + path + '/player/info/' + this.data.trailer_id + '/', function (dataApi) {
-                _onSuccess(dataApi);
-            }, function () {
-                _onError();
-            });
-        }
     };
 
     CombinedPlayer.prototype.abort = function abort() {
@@ -573,10 +571,10 @@ var _jsMeter = require('../js/Meter');
 var _jsMeter2 = _interopRequireDefault(_jsMeter);
 
 var _default = (function () {
-	function _default(oUPlayer) {
+	function _default(oUPlayer, HTMLDataApi) {
 		_classCallCheck(this, _default);
 
-		this._createElements(oUPlayer);
+		this._createElements(oUPlayer, HTMLDataApi);
 		this._resetStat();
 		this._addEventsName();
 
@@ -600,7 +598,6 @@ var _default = (function () {
 		this._addFullscreen();
 		this._addSharePanel();
 		this._addFooterPanel();
-		this._reloadVideo();
 	}
 
 	_default.prototype._getHtml = function _getHtml(data) {
@@ -612,14 +609,14 @@ var _default = (function () {
 		return '<div data-js="html-player" data-quality=\'{' + quality + '}\' class="htmlPlayer">' + '<video data-js="video" preload="metadata" class="htmlPlayer_video" controls="controls" poster="' + data.poster + '" webkit-playsinline>' + '<source src="' + data.files.low.path + '" type="video/mp4" />' + '<a class="htmlPlayer_altVideo" href="' + data.files.low.path + '"  style="background-image:url(' + data.poster + ')">' + '<img class="htmlPlayer_altVideoPoster" src="' + data.poster + '" alt="" />' + '<img class="htmlPlayer_altVideoBtn" src="https://video.kinoafisha.info/i/player/play-btn.png" alt="" />' + '</a>' + '</video>' + '<div data-js="toggle" class="htmlPlayer_toggle">' + '<img class="htmlPlayer_bigPauseBtn" src="https://video.kinoafisha.info/i/player/pause-btn.png" alt="" />' + '</div>' + '<div data-js="footer" class="htmlPlayer_footer">' + '<div data-js="controls" class="htmlPlayer_controls">' + '<div class="htmlPlayer_controlsCell htmlPlayer_controlsCell-shrink">' + '<div class="htmlPlayer_playback htmlPlayer_controlsBtn">' + '<img data-js="play"  class="htmlPlayer_playBtn" src="https://video.kinoafisha.info/i/player/play.png" alt="" />' + '<img data-js="pause"  class="htmlPlayer_pauseBtn" src="https://video.kinoafisha.info/i/player/pause.png" alt="" />' + '</div>' + '<div class="htmlPlayer_time">' + '<span data-js="timeCur" class="htmlPlayer_timeCur"></span>' + '<span class="htmlPlayer_timeSep">/</span>' + '<span data-js="timeDur" class="htmlPlayer_timeDur"></span>' + '</div>' + '</div>' + '<div class="htmlPlayer_controlsCell">' + '<div data-js="rewind" data-meter = \'{}\'  class="playerMeter  htmlPlayer_controlsBtn">' + '<div class="playerMeter-strip"></div>' + '<div data-js="buffered" class="playerMeter-buffered"></div>' + '<div data-js="progress" class="playerMeter-progress"></div>' + '<div data-js="slider" class="playerMeter-slider"></div>' + '</div>' + '</div>' + '<div class="htmlPlayer_controlsCell  htmlPlayer_controlsCell-shrink">' + '<span data-js="quality" class="htmlPlayer_qualityBtn htmlPlayer_controlsBtn">hq</span>' + '<div data-js="mute" class="htmlPlayer_mute htmlPlayer_controlsBtn">' + '<img  data-js="mute-on" data-js="mute-on"  class="htmlPlayer_muteOn" src="https://video.kinoafisha.info/i/player/mute-on.png" alt="" />' + '<img  data-js="mute-off" data-js="mute-off"  class="htmlPlayer_muteOff" src="https://video.kinoafisha.info/i/player/mute-off.png" alt="" />' + '</div>' + '<div data-js="volume" data-meter = \'{"value": 1}\'  class="playerMeter playerMeter_volume htmlPlayer_controlsBtn">' + '<div class="playerMeter-strip"></div>' + '<div data-js="progress" class="playerMeter-progress"></div>' + '<div data-js="slider" class="playerMeter-slider"></div>' + '</div>' + '<div data-js="fullscreen" class="htmlPlayer_fullscreen htmlPlayer_controlsBtn"> ' + '<img data-js="fullscreen-request"  class="htmlPlayer_fullscreenRequest" src="https://video.kinoafisha.info/i/player/fullscreen-request.png" alt="" />' + '<img data-js="fullscreen-exit"  class="htmlPlayer_fullscreenExit" src="https://video.kinoafisha.info/i/player/fullscreen-exit.png" alt="" />' + '</div>' + '<div data-js="share-btn" class="htmlPlayer_shareBtn htmlPlayer_controlsBtn">&lt;/&gt;</div>' + '</div>' + '</div>' + '<div data-js="share" class="htmlPlayer_share">' + '<div class="htmlPlayer_shareItem">' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-title">' + 'Ссылка на ролик' + '</div>' + '<div class="htmlPlayer_shareCell">' + '<input readonly class="htmlPlayer_shareField htmlPlayer_shareField-insert" type="text" value="' + data.trailer_url + '" />' + '</div>' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-shrink">' + '&nbsp;' + '</div>' + '</div>' + '<div class="htmlPlayer_shareItem">' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-title">' + 'Код для вставки' + '</div>' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-shrink">' + '<span class="htmlPlayer_shareNote">ширина</span>' + '<input data-js="embed-width" class="htmlPlayer_shareField htmlPlayer_shareField-size" type="text" value="640" />' + '<span class="htmlPlayer_shareNote">высота</span>' + '<input data-js="embed-height" class="htmlPlayer_shareField htmlPlayer_shareField-size" type="text" value="360" />' + '</div>' + '<div class="htmlPlayer_shareCell">' + '<input data-js="embed" readonly class="htmlPlayer_shareField htmlPlayer_shareField-insert" type="text" value=\'' + data.embed_url + '\' />' + '</div>' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-shrink">' + '&nbsp;' + '</div>' + '</div>' + '</div>' + '</div>' + '<img  class="htmlPlayer_logo" src="https://video.kinoafisha.info/i/player/logo.png" alt="" />' + '<div data-js="poster" class="htmlPlayer_poster" style="background-image:url(' + data.poster + ')">' + '<div class="htmlPlayer_posterInfo">' + '<span class="htmlPlayer_posterCat">' + data.title + '</span>' + '<span class="htmlPlayer_posterName">' + data.movie_name + '</span>' + '</div>' + '<img  class="htmlPlayer_posterBtn" src="https://video.kinoafisha.info/i/player/play-btn.png" alt="" />' + '</div>' + '<div class="htmlPlayer_preloader"></div>' + '</div>';
 	};
 
-	_default.prototype._createElements = function _createElements(oUPlayer) {
-
+	_default.prototype._createElements = function _createElements(oUPlayer, HTMLDataApi) {
+		this.HTMLDataApi = HTMLDataApi;
 		this.oUPlayer = oUPlayer;
 		this.paramPlayer = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
 		this.parentWrapper = oUPlayer.wrapper;
-		this.insert = oUPlayer.insert;
-		oUPlayer.insert.innerHTML = this._getHtml(oUPlayer.HTMLDataApi);
-		this.wrapper = oUPlayer.insert.firstChild;
+		this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="video"]');
+		this.insert.innerHTML = this._getHtml(HTMLDataApi);
+		this.wrapper = this.insert.firstChild;
 
 		var self = this;
 
@@ -1126,16 +1123,19 @@ var _default = (function () {
 		this.wrapper.className = cls;
 	};
 
-	_default.prototype._initialize = function _initialize() {
+	_default.prototype.initialize = function initialize() {
 		this.video.innerHTML = '';
 		this.video.load();
+	};
+
+	_default.prototype.start = function start() {
+		this._reloadVideo();
 	};
 
 	_default.prototype.abort = function abort() {
 		if (this.video.paused) return;
 		this.wrapper.className = this.wrapper.className.replace(/\s*(htmlPlayer-pause|htmlPlayer-playing)/g, '');
 		this.video.pause();
-		this.afterAbort(); //определяется в основном плеере
 	};
 
 	_default.prototype.del = function del() {

@@ -109,8 +109,10 @@ var CombinedPlayer =  class {
 
         if(this.oAdvPlayer && this.isShowAdv) {
             this.oAdvPlayer.start();
-            //this.oHTMLPlayer.initialize();
-            this.oYoutubePlayer.initialize();
+
+            /* for IOS */
+            if(this.oYoutubePlayer) this.oYoutubePlayer.initialize();
+            else this.oHTMLPlayer.initialize();
 
             this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
             this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
@@ -266,15 +268,14 @@ var CombinedPlayer =  class {
     }
 
     _onSuccessGetHtmlData(data){
+        var self = this;
         if(!self.oHTMLPlayer) return false; /* произошло удаление или abort */
 
         self.oHTMLPlayer = new HTMLPlayer(self, data);
         self.oHTMLPlayer.afterEnd = function(){
             self._returnOriginalView.call(self, 'oHTMLPlayer');
         }
-        self.oHTMLPlayer.afterAbort = function(){
-            self._returnOriginalView.call(self, 'oHTMLPlayer');
-        }
+        self._checkInitPlayers.call(self);
     }
 
     _onSuccessGetAdvData(data){
@@ -282,16 +283,16 @@ var CombinedPlayer =  class {
         if(!this.oAdvPlayer) return false;
         self.oAdvPlayer = new AdvPlayer(self, data); /* при создании объекта проиходит вставка нужной разметки и инициализация плеера.(IOS) Сами Данные не вставляются */
         self.oAdvPlayer.afterEnd = function(){
-            if(self.oYoutubePlayer){
-                self.oYoutubePlayer.start();
-                self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
-            }
+            if(self.oYoutubePlayer) self.oYoutubePlayer.start();
+            else self.oHTMLPlayer.start();
+
+            self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         }
         self.oAdvPlayer.afterSkip = function(){
-            if(self.oYoutubePlayer){
-                self.oYoutubePlayer.start();
-                self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
-            }
+            if(self.oYoutubePlayer) self.oYoutubePlayer.start();
+            else self.oHTMLPlayer.start();
+
+            self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         }
         self.oAdvPlayer.afterClicking = function() {
             self.oAdvPlayer.abort();

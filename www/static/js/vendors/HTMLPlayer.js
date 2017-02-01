@@ -39,7 +39,6 @@ var _default = (function () {
 		this._addFullscreen();
 		this._addSharePanel();
 		this._addFooterPanel();
-		this._reloadVideo();
 	}
 
 	_default.prototype._getHtml = function _getHtml(data) {
@@ -56,9 +55,9 @@ var _default = (function () {
 		this.oUPlayer = oUPlayer;
 		this.paramPlayer = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
 		this.parentWrapper = oUPlayer.wrapper;
-		this.insert = oUPlayer.insert;
-		oUPlayer.insert.innerHTML = this._getHtml(HTMLDataApi);
-		this.wrapper = oUPlayer.insert.firstChild;
+		this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="video"]');
+		this.insert.innerHTML = this._getHtml(HTMLDataApi);
+		this.wrapper = this.insert.firstChild;
 
 		var self = this;
 
@@ -565,16 +564,19 @@ var _default = (function () {
 		this.wrapper.className = cls;
 	};
 
-	_default.prototype._initialize = function _initialize() {
+	_default.prototype.initialize = function initialize() {
 		this.video.innerHTML = '';
 		this.video.load();
+	};
+
+	_default.prototype.start = function start() {
+		this._reloadVideo();
 	};
 
 	_default.prototype.abort = function abort() {
 		if (this.video.paused) return;
 		this.wrapper.className = this.wrapper.className.replace(/\s*(htmlPlayer-pause|htmlPlayer-playing)/g, '');
 		this.video.pause();
-		this.afterAbort(); //определяется в основном плеере
 	};
 
 	_default.prototype.del = function del() {

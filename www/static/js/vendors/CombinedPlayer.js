@@ -319,8 +319,9 @@ var CombinedPlayer = (function () {
 
         if (this.oAdvPlayer && this.isShowAdv) {
             this.oAdvPlayer.start();
-            //this.oHTMLPlayer.initialize();
-            this.oYoutubePlayer.initialize();
+
+            /* for IOS */
+            if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
 
             this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
             this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
@@ -481,15 +482,14 @@ var CombinedPlayer = (function () {
     };
 
     CombinedPlayer.prototype._onSuccessGetHtmlData = function _onSuccessGetHtmlData(data) {
+        var self = this;
         if (!self.oHTMLPlayer) return false; /* произошло удаление или abort */
 
         self.oHTMLPlayer = new _jsHTMLPlayer2['default'](self, data);
         self.oHTMLPlayer.afterEnd = function () {
             self._returnOriginalView.call(self, 'oHTMLPlayer');
         };
-        self.oHTMLPlayer.afterAbort = function () {
-            self._returnOriginalView.call(self, 'oHTMLPlayer');
-        };
+        self._checkInitPlayers.call(self);
     };
 
     CombinedPlayer.prototype._onSuccessGetAdvData = function _onSuccessGetAdvData(data) {
@@ -497,16 +497,14 @@ var CombinedPlayer = (function () {
         if (!this.oAdvPlayer) return false;
         self.oAdvPlayer = new _jsAdvPlayer2['default'](self, data); /* при создании объекта проиходит вставка нужной разметки и инициализация плеера.(IOS) Сами Данные не вставляются */
         self.oAdvPlayer.afterEnd = function () {
-            if (self.oYoutubePlayer) {
-                self.oYoutubePlayer.start();
-                self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
-            }
+            if (self.oYoutubePlayer) self.oYoutubePlayer.start();else self.oHTMLPlayer.start();
+
+            self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         };
         self.oAdvPlayer.afterSkip = function () {
-            if (self.oYoutubePlayer) {
-                self.oYoutubePlayer.start();
-                self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
-            }
+            if (self.oYoutubePlayer) self.oYoutubePlayer.start();else self.oHTMLPlayer.start();
+
+            self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         };
         self.oAdvPlayer.afterClicking = function () {
             self.oAdvPlayer.abort();
@@ -600,7 +598,6 @@ var _default = (function () {
 		this._addFullscreen();
 		this._addSharePanel();
 		this._addFooterPanel();
-		this._reloadVideo();
 	}
 
 	_default.prototype._getHtml = function _getHtml(data) {
@@ -617,9 +614,9 @@ var _default = (function () {
 		this.oUPlayer = oUPlayer;
 		this.paramPlayer = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
 		this.parentWrapper = oUPlayer.wrapper;
-		this.insert = oUPlayer.insert;
-		oUPlayer.insert.innerHTML = this._getHtml(HTMLDataApi);
-		this.wrapper = oUPlayer.insert.firstChild;
+		this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="video"]');
+		this.insert.innerHTML = this._getHtml(HTMLDataApi);
+		this.wrapper = this.insert.firstChild;
 
 		var self = this;
 
@@ -1126,16 +1123,19 @@ var _default = (function () {
 		this.wrapper.className = cls;
 	};
 
-	_default.prototype._initialize = function _initialize() {
+	_default.prototype.initialize = function initialize() {
 		this.video.innerHTML = '';
 		this.video.load();
+	};
+
+	_default.prototype.start = function start() {
+		this._reloadVideo();
 	};
 
 	_default.prototype.abort = function abort() {
 		if (this.video.paused) return;
 		this.wrapper.className = this.wrapper.className.replace(/\s*(htmlPlayer-pause|htmlPlayer-playing)/g, '');
 		this.video.pause();
-		this.afterAbort(); //определяется в основном плеере
 	};
 
 	_default.prototype.del = function del() {
