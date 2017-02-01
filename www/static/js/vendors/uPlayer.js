@@ -12,7 +12,6 @@ var _default = (function () {
 		this._createElements(oUPlayer, data);
 		this._addEventsName();
 		this._addEvents();
-		this._initialize();
 	}
 
 	_default.prototype._getHtml = function _getHtml() {
@@ -105,13 +104,6 @@ var _default = (function () {
 		this.afterEnd(); //определяется в основном плеере
 	};
 
-	_default.prototype.abort = function abort() {
-		if (this.video.paused) return;
-		this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
-		this.video.pause();
-		this.afterAbort(); //определяется в основном плеере
-	};
-
 	_default.prototype._reloadData = function _reloadData(data) {
 		var source = document.createElement('SOURCE');
 
@@ -138,20 +130,20 @@ var _default = (function () {
 
 	_default.prototype._checkStat = function _checkStat() {
 		/* делаем по аналогии с флеш-плеером, где даже при перемотке статистика считается */
-		if (!this.keyFrameAll.length) return false;
+		if (!this.data.keyFrameAll.length) return false;
 
 		var persent = Math.round(this.video.currentTime / this.video.duration * 100);
-		if (this.keyFrameAll[0] === persent || this.keyFrameAll[0] < persent) {
-			this._sendStat(this.keyFrameAll[0] + '');
+		if (this.data.keyFrameAll[0] === persent || this.data.keyFrameAll[0] < persent) {
+			this._sendStat(this.data.keyFrameAll[0] + '');
 
-			this.keyFrameAll.shift();
+			this.data.keyFrameAll.shift();
 			this._checkStat();
 		}
 	};
 
 	_default.prototype._sendStat = function _sendStat(name) {
 		var arr;
-		if (arr = this.statEventAll[name]) {
+		if (arr = this.data.statEventAll[name]) {
 			for (var i = 0, j = arr.length; i < j; i++) {
 				var src;
 				if (src = arr[i]) {
@@ -184,16 +176,31 @@ var _default = (function () {
 		//this.video.muted = false;
 	};
 
-	_default.prototype._initialize = function _initialize() {
-		this.video.innerHTML = '';
-		this.video.load();
+	_default.prototype.start = function start(data) {
+		/* TODO сейчас данные никакие не передаются, а сохраняются при инициализции плеера. Пока не знаю как лучше будет */
+		var self = this;
+		this.wrapper.className = 'advPlayer advPlayer-active  advPlayer-waiting';
+		self._reloadData.call(self, self.data);
+
+		/* оправляем статистику начала проигрывания */
+		var ImpressionAll = this.data.ImpressionAll;
+		for (var i = 0, j = ImpressionAll.length; i < j; i++) {
+			var src;
+			if (src = ImpressionAll[i].childNodes[0].nodeValue) {
+				var image = document.createElement('IMG');
+
+				//
+				image.src = src;
+				image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
+				document.body.appendChild(image);
+			}
+		}
 	};
 
-	_default.prototype.start = function start(data) {
-		var self = this;
-
-		this.wrapper.className = 'advPlayer advPlayer-active  advPlayer-waiting';
-		self._reloadData.call(self, data);
+	_default.prototype.abort = function abort() {
+		if (this.video.paused) return;
+		this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
+		this.video.pause();
 	};
 
 	_default.prototype.del = function del() {
@@ -235,18 +242,24 @@ var _jsYoutubePlayer = require('../js/YoutubePlayer');
 var _jsScriptonload = require('../js/scriptonload');
 
 var CombinedPlayer = (function () {
-    function CombinedPlayer(wrapper, name) {
+    function CombinedPlayer(wrapper, param) {
         _classCallCheck(this, CombinedPlayer);
 
-        this.name = name;
+        this.wrapper = wrapper;
+        this.data = param;
+        this.name = this.data.name;
         this.countPLayers = 0;
         this.isShowAdv = this.data.adv === 'hide' ? false : true;
+        this._insertHTML(wrapper); /*  */
+        this.btn = this.wrapper.querySelector('[data-CombinedPlayer-btn]');
+        this.isMobileAgent = this._defineUserAgent();
+        this.isShowAdv = true;
+        this.oAdvPlayer = undefined;
+        this.oHTMLPlayer = undefined;
+        this.oYoutubePlayer = undefined;
+        this.HTMLDataApi; /* данные Html плеера. будем загружать только один раз и зранить здесь */
         this._initPlayers();
-
-        //this._insertHTML(wrapper);
-        this._createElements();
         this._addEvents();
-
         this._checkAutoplay();
     }
 
@@ -266,28 +279,14 @@ var CombinedPlayer = (function () {
         }
     };
 
-    CombinedPlayer.prototype._insertHTML = function _insertHTML(wrapper) {
-        this.wrapper = wrapper;
-        this.data = JSON.parse(this.wrapper.getAttribute('data-param'));
-
+    CombinedPlayer.prototype._insertHTML = function _insertHTML() {
         var age = this.data.age ? '<svg class="combinedPlayer_header_age" role="img"><use xlink:href="/static/img/symbols/sprite.svg#age' + this.data.age + '"></use></svg>' : '';
         var allVideoLink = this.data.allVideoLink ? '<a class="combinedPlayer_header_allVideoLink" href="' + this.data.allVideoLink + '">Все видео</a>' : '';
         var category = this.data.category ? '<span class="combinedPlayer_header_category">' + this.data.category + '</span>' : '';
 
         var btns = this.data.online ? '<div class="combinedPlayer_playBtns">' + '<div class="combinedPlayer_playBtns_frame">' + '<a class="combinedPlayer_onlineBtn" href="' + this.data.online + '">' + '<svg class="combinedPlayer_onlineBtn_symbol" role="img"><use xlink:href="/static/img/symbols/sprite.svg#play"></use></svg>' + '<span class="combinedPlayer_onlineBtn_text">Смотреть online<br />бесплатно</span>' + '</a>' + '<a data-CombinedPlayer-btn class="combinedPlayer_trailerBtn" href="#">' + '<span class="combinedPlayer_trailerBtn_text">трейлер</span>' + '<svg class="combinedPlayer_trailerBtn_symbol" role="img"><use xlink:href="/static/img/symbols/sprite.svg#play"></use></svg>' + '</a>' + '</div>' + '</div>' : '<a data-CombinedPlayer-btn class="combinedPlayer_playBtn" href="#">' + '<span class="combinedPlayer_playBtn_circle">' + '<svg class="combinedPlayer_playBtn_symbol" role="img"><use xlink:href="/static/img/symbols/sprite.svg#play"></use></svg>' + '</span>' + '</a>';
 
-        this.wrapper.innerHTML = '<div data-CombinedPlaye="adv" class="combinedPlayer_insert combinedPlayer_insert-adv">' + '<div data-CombinedPlayer-insert="video" class="combinedPlayer_insert combinedPlayer_insert-video"></div>' + '<div class="combinedPlayer_preview" style="background-image:url(' + this.data.cover + ')">' + '<span class="combinedPlayer_shadow"></span>' + btns + '<div class="combinedPlayer_header">' + '<div class="combinedPlayer_header_left">' + '&nbsp;' + '</div>' + '<div class="combinedPlayer_header_right">' + category + allVideoLink + age + '</div>' + '</div>' + '</div>';
-    };
-
-    CombinedPlayer.prototype._createElements = function _createElements() {
-        this.btn = this.wrapper.querySelector('[data-CombinedPlayer-btn]');
-        this.insert = this.wrapper.querySelector('[data-CombinedPlayer-insert]');
-        this.isMobileAgent = this._defineUserAgent();
-        this.isShowAdv = true;
-        this.oAdvPlayer;
-        this.oHTMLPlayer;
-        this.oYoutubePlayer;
-        this.HTMLDataApi; /* данные Html плеера. будем загружать только один раз и зранить здесь */
+        this.wrapper.innerHTML = '<div data-CombinedPlayer-insert="adv" class="combinedPlayer_insert combinedPlayer_insert-adv"></div>' + '<div data-CombinedPlayer-insert="video" class="combinedPlayer_insert combinedPlayer_insert-video"></div>' + '<div class="combinedPlayer_preview" style="background-image:url(' + this.data.cover + ')">' + '<span class="combinedPlayer_shadow"></span>' + btns + '<div class="combinedPlayer_header">' + '<div class="combinedPlayer_header_left">' + '&nbsp;' + '</div>' + '<div class="combinedPlayer_header_right">' + category + allVideoLink + age + '</div>' + '</div>' + '</div>';
     };
 
     CombinedPlayer.prototype._defineUserAgent = function _defineUserAgent() {
@@ -306,34 +305,42 @@ var CombinedPlayer = (function () {
 
         _jsEvent.event.add(this.btn, 'click', function (e) {
             e.preventDefault();
-            self._play.call(self);
+            self._start.call(self);
         });
     };
 
     CombinedPlayer.prototype._checkAutoplay = function _checkAutoplay() {
-        if (this.data.autoplay) this._play();
+        if (this.data.autoplay) this._start();
     };
 
-    CombinedPlayer.prototype._play = function _play() {
+    CombinedPlayer.prototype._start = function _start() {
         uPlayer.abortAll(this);
 
         this._sendStat('');
 
-        if (this.oAdvPlayer) {
-            this.oAdvPlayer.start(data);
+        if (this.oAdvPlayer && this.isShowAdv) {
+            this.oAdvPlayer.start();
+            //this.oHTMLPlayer.initialize();
+            this.oYoutubePlayer.initialize();
+
+            this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
             this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
         } else if (this.oHTMLPlayer) {
                 this.oHTMLPlayer.start(data);
-            } else this.oYoutubePlayer.start(data);
+                this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
+            } else {
+                this.oYoutubePlayer.start();
+                this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
+            }
 
-        if (this.wrapper.className.indexOf('js-active') === -1) this.wrapper.className = this.wrapper.className + ' js-active';
         if (this.onActive) this.onActive();
     };
 
     CombinedPlayer.prototype._returnOriginalView = function _returnOriginalView(name) {
-        this.wrapper.className = this.wrapper.className.replace(' js-active', '');
-        this[name].del();
-        delete this[name];
+        /* TODO больше не удаляем плееры */
+        this.wrapper.className = this.wrapper.className.replace(/ js-active(-video|-adv)*/g, '');
+        //this[name].del();
+        //delete this[name];
         if (this.onDisableActive) this.onDisableActive();
     };
 
@@ -354,17 +361,6 @@ var CombinedPlayer = (function () {
                     checkLoading();
                 }, 200);
             }
-        },
-            addApi = function addApi() {
-            if (!self.oYoutubePlayer) return false;
-
-            self.oYoutubePlayer = new _jsYoutubePlayer.YoutubePlayer(self);
-            self.oYoutubePlayer.afterEnd = function () {
-                self._returnOriginalView.call(self, 'oYoutubePlayer');
-            };
-            self.oYoutubePlayer.afterAbort = function () {
-                self._returnOriginalView.call(self, 'oYoutubePlayer');
-            };
         };
 
         //
@@ -384,40 +380,106 @@ var CombinedPlayer = (function () {
 
     CombinedPlayer.prototype._getAdvData = function _getAdvData() {
         var self = this;
+        var data = {}; /* урл, ссылка, статистика итд */
         var curTime = new Date().getTime();
-        var advInterval = 24;
+        var advInterval = 0;
 
-        this.oAdvPlayer = 'loading';
+        var url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
 
-        if (localStorage && !localStorage.isKinoafishaVideoAdv || (curTime - parseFloat(localStorage.isKinoafishaVideoAdv)) / 1000 / 60 / 60 > advInterval) {
-            localStorage.isKinoafishaVideoAdv = curTime;
-            var data = {};
-            data.advVideo = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
-            data.advLink = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
-            this._onSuccessGetAdvData(data);
-        } else {
-            if (self.data.youtube) self._createYoutubePlayer.call(self);else self._createHTMLPlayer.call(self);
-        }
+        // path = 'https://static.kinoafisha.info/static/html/vast.xml?rnd=' + new Date().getTime(),
+        path = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=' + url + '&page-ref=' + url + '&rnd=' + new Date().getTime(),
+            x = new XMLHttpRequest();
+
+        var _getOur = function _getOur() {
+            if (localStorage && !localStorage.isKinoafishaVideoAdv || (curTime - parseFloat(localStorage.isKinoafishaVideoAdv)) / 1000 / 60 / 60 > advInterval) {
+                self.oAdvPlayer = 'loading';
+                localStorage.isKinoafishaVideoAdv = curTime;
+                data.advVideo = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
+                data.advLink = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
+                self._onSuccessGetAdvData.call(self, data);
+            } else self._checkInitPlayers.call(self);
+        };
+
+        //
+        data.advVideo = undefined;
+        data.advLink = undefined;
+        data.ImpressionAll = []; /* src статистика начала проигрывания */
+        data.keyFrameAll = []; /* ключевые кадры в процентах */
+        data.statEventAll = {}; /* соотв им названия, например, при 50% - название midpoint итд */
+
+        //
+        x.withCredentials = true;
+        x.open("GET", path, true);
+        x.onload = function () {
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(x.responseText, "text/xml");
+            var MediaFile = xmlDoc.getElementById('480p.mp4');
+            var ClickThrough = xmlDoc.getElementsByTagName('ClickThrough')[0];
+
+            if (MediaFile) {
+                var ImpressionAll = xmlDoc.getElementsByTagName('Impression'),
+                    TrackingAll = xmlDoc.getElementsByTagName('Tracking'),
+                    statEventAll = {};
+
+                data.advVideo = MediaFile.childNodes[0].nodeValue;
+                data.advLink = ClickThrough.childNodes[0].nodeValue;
+
+                /* определяем src для статистики начала проигрывания */
+                for (var i = 0, j = ImpressionAll.length; i < j; i++) {
+                    var src;
+                    if (src = ImpressionAll[i].childNodes[0].nodeValue) data.ImpressionAll.push(src);
+                }
+
+                /* формируем данные статистики ключевых кадров */
+                for (var i = 0, j = TrackingAll.length; i < j; i++) {
+                    var name = TrackingAll[i].getAttribute('event'),
+                        src = TrackingAll[i].childNodes[0].nodeValue;
+                    //
+                    switch (name) {
+                        case 'start':
+                            name = '0';break;
+                        case 'firstQuartile':
+                            name = '25';break;
+                        case 'midpoint':
+                            name = '50';break;
+                        case 'thirdQuartile':
+                            name = '75';break;
+                        case 'complete':
+                            name = '100';break;
+                    }
+
+                    if (!statEventAll[name]) statEventAll[name] = [];
+                    statEventAll[name].push(src);
+                }
+
+                data.keyFrameAll = [0, 25, 50, 75, 100];
+                data.statEventAll = statEventAll;
+
+                self._onSuccessGetAdvData.call(self, data);
+            } else _getOur();
+        };
+        x.onerror = _getOur; /* например, блокировщик рекламы */
+        x.send(null);
     };
 
     CombinedPlayer.prototype._onSuccessGetAdvData = function _onSuccessGetAdvData(data) {
         var self = this;
         if (!this.oAdvPlayer) return false;
-        self.oAdvPlayer = new _jsAdvPlayer2['default'](self); /* при создании объекта проиходит вставка нужной разметки и инициализация плеера.(IOS) Сами Данные не вставляются */
+        self.oAdvPlayer = new _jsAdvPlayer2['default'](self, data); /* при создании объекта проиходит вставка нужной разметки и инициализация плеера.(IOS) Сами Данные не вставляются */
         self.oAdvPlayer.afterEnd = function () {
-            self.oAdvPlayer.del();
-            delete self.oAdvPlayer;
-            if (self.data.youtube) self._createYoutubePlayer.call(self);else self._createHTMLPlayer.call(self);
-        };
-        self.oAdvPlayer.afterAbort = function () {
-            self._returnOriginalView.call(self, 'oAdvPlayer');
+            if (self.oYoutubePlayer) {
+                self.oYoutubePlayer.start();
+                self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
+            }
         };
         self.oAdvPlayer.afterSkip = function () {
-            self.oAdvPlayer.del();
-            delete self.oAdvPlayer;
-            if (self.data.youtube) self._createYoutubePlayer.call(self);else self._createHTMLPlayer.call(self);
+            if (self.oYoutubePlayer) {
+                self.oYoutubePlayer.start();
+                self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
+            }
         };
         self.oAdvPlayer.afterClicking = function () {
+            self.oAdvPlayer.abort();
             self._returnOriginalView.call(self, 'oAdvPlayer');
         };
         self._checkInitPlayers.call(self);
@@ -433,9 +495,6 @@ var CombinedPlayer = (function () {
 
         self.oYoutubePlayer = new _jsYoutubePlayer.YoutubePlayer(self, onReady);
         self.oYoutubePlayer.afterEnd = function () {
-            self._returnOriginalView.call(self, 'oYoutubePlayer');
-        };
-        self.oYoutubePlayer.afterAbort = function () {
             self._returnOriginalView.call(self, 'oYoutubePlayer');
         };
     };
@@ -459,10 +518,10 @@ var CombinedPlayer = (function () {
             _onError = function _onError() {};
 
         //
-        this.oHTMLPlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */
+        this.oHTMLPlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */ /* TODO не нужно, потому что все данные теперь подгружаются заранее */
         if (this.HTMLDataApi) _onSuccess(this.HTMLDataApi);else {
             /* TODO о время загрузки белый экран. Нужно показывать прелоадер */
-            _jsScriptRequest.scriptRequest('https://api.' + path + '/player/info/' + this.data.trailer_id + '/', function (dataApi) {
+            _jsScriptRequest.scriptRequest('//api.' + path + '/player/info/' + this.data.trailer_id + '/', function (dataApi) {
                 _onSuccess(dataApi);
             }, function () {
                 _onError();
@@ -471,25 +530,19 @@ var CombinedPlayer = (function () {
     };
 
     CombinedPlayer.prototype.abort = function abort() {
-        if (this.oAdvPlayer) this.oAdvPlayer.abort();else if (this.oHTMLPlayer) {
-            if (this.oHTMLPlayer === 'loading') {
-                this.wrapper.className = this.wrapper.className.replace(' js-active', '');
-                delete this.oHTMLPlayer;
-            } else this.oHTMLPlayer.abort();
-        } else if (this.oYoutubePlayer) {
-            if (this.oYoutubePlayer === 'loading') {
-                this.wrapper.className = this.wrapper.className.replace(' js-active', '');
-                delete this.oYoutubePlayer;
-            } else this.oYoutubePlayer.abort();
-        }
+        if (this.oAdvPlayer) this.oAdvPlayer.abort();
+
+        if (this.oHTMLPlayer) this.oHTMLPlayer.abort();else this.oYoutubePlayer.abort();
+
+        this._returnOriginalView();
     };
 
     CombinedPlayer.prototype.del = function del() {
         if (this.oAdvPlayer) this.oAdvPlayer.del();
-        if (this.oHTMLPlayer && this.oHTMLPlayer.del) this.oHTMLPlayer.del();
-        if (this.oYoutubePlayer && this.oYoutubePlayer.del) this.oYoutubePlayer.del();
 
-        this.wrapper.className = this.wrapper.className.replace(' js-active', '');
+        if (this.oHTMLPlayer) this.oHTMLPlayer.del();else this.oYoutubePlayer.del();
+
+        this.wrapper.className = this.wrapper.className.replace(/ js-active(-video|-adv)*/g, '');
         this.wrapper.innerHTML = '';
         ;
         delete uPlayer.all[this.name];
@@ -1260,11 +1313,12 @@ var YoutubePlayer = (function () {
     function YoutubePlayer(oUPlayer, _onReady) {
         _classCallCheck(this, YoutubePlayer);
 
-        oUPlayer.insert.innerHTML = '<iframe class="combinedPlayer_youtube" src="' + oUPlayer.data.youtube + '?enablejsapi=1" allowfullscreen="" frameborder="0"></iframe>';
+        this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="video"]');
+        this.insert.innerHTML = '<iframe class="combinedPlayer_youtube" src="' + oUPlayer.data.youtube + '?enablejsapi=1" allowfullscreen="" frameborder="0"></iframe>';
         var self = this;
 
         this.oUPlayer = oUPlayer;
-        this.YT = new YT.Player(oUPlayer.insert.firstChild, {
+        this.YT = new YT.Player(this.insert.firstChild, {
             events: {
                 'onReady': function onReady(event) {
                     _onReady(event);
@@ -1280,17 +1334,23 @@ var YoutubePlayer = (function () {
         if (event.data === 0) this.afterEnd();
     };
 
-    YoutubePlayer.prototype.start = function start() {};
+    YoutubePlayer.prototype.initialize = function initialize() {
+        this.YT.playVideo();
+        this.YT.pauseVideo();
+    };
+
+    YoutubePlayer.prototype.start = function start() {
+        this.YT.playVideo();
+    };
 
     YoutubePlayer.prototype.abort = function abort() {
         if (this.YT.getPlayerState && this.YT.getPlayerState() === 2) return false;
         if (this.YT.pauseVideo) this.YT.pauseVideo();
-        this.afterAbort(); //определяется в основном плеере
     };
 
     YoutubePlayer.prototype.del = function del() {
         this.YT.destroy();
-        this.oUPlayer.insert.innerHTML = '';
+        this.insert.innerHTML = '';
     };
 
     return YoutubePlayer;
@@ -1560,7 +1620,7 @@ exports['default'] = (function (root, doc) {
     var uPlayer = function uPlayer(wrapper) {
         var param = JSON.parse(wrapper.getAttribute('data-param'));
         if (!param.name) param.name = 'player-' + String(Math.random()).slice(-6);
-        if (!uPlayer.all[param.name]) uPlayer.all[param.name] = new _jsCombinedPlayer.CombinedPlayer(wrapper, param.name);
+        if (!uPlayer.all[param.name]) uPlayer.all[param.name] = new _jsCombinedPlayer.CombinedPlayer(wrapper, param);
         return uPlayer.all[param.name];
     };
 

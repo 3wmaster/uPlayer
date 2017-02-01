@@ -1,8 +1,8 @@
 import Meter from '../js/Meter';
 
 export default class{
-	constructor(oUPlayer){
-		this._createElements(oUPlayer);
+	constructor(oUPlayer, HTMLDataApi){
+		this._createElements(oUPlayer, HTMLDataApi);
 		this._resetStat();
 		this._addEventsName();
 
@@ -135,13 +135,13 @@ export default class{
             '</div>';
     }
 	
-	_createElements(oUPlayer){
-
+	_createElements(oUPlayer, HTMLDataApi){
+		this.HTMLDataApi = HTMLDataApi;
         this.oUPlayer = oUPlayer;
         this.paramPlayer = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
         this.parentWrapper = oUPlayer.wrapper;
         this.insert = oUPlayer.insert;
-        oUPlayer.insert.innerHTML = this._getHtml(oUPlayer.HTMLDataApi);
+        oUPlayer.insert.innerHTML = this._getHtml(HTMLDataApi);
         this.wrapper = oUPlayer.insert.firstChild;
 
         var self = this;

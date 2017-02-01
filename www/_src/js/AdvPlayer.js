@@ -4,7 +4,6 @@ export default class{
 		this._createElements(oUPlayer, data);
 		this._addEventsName();
 		this._addEvents();
-        this._initialize();
 	}
 
     _getHtml(){
@@ -117,13 +116,6 @@ export default class{
 		this.afterEnd(); //определяется в основном плеере
 	}
 
-    abort(){
-        if(this.video.paused) return;
-        this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
-        this.video.pause();
-        this.afterAbort(); //определяется в основном плеере
-    }
-
 	_reloadData(data){
         var source = document.createElement('SOURCE');
 
@@ -149,20 +141,20 @@ export default class{
 	}
 
     _checkStat(){/* делаем по аналогии с флеш-плеером, где даже при перемотке статистика считается */
-        if(!this.keyFrameAll.length) return false;
+        if(!this.data.keyFrameAll.length) return false;
 
         var persent = Math.round(this.video.currentTime/this.video.duration*100);
-        if((this.keyFrameAll[0] === persent) || (this.keyFrameAll[0] < persent)){
-            this._sendStat(this.keyFrameAll[0]+'');
+        if((this.data.keyFrameAll[0] === persent) || (this.data.keyFrameAll[0] < persent)){
+            this._sendStat(this.data.keyFrameAll[0]+'');
 
-            this.keyFrameAll.shift();
+			this.data.keyFrameAll.shift();
             this._checkStat();
         }
     }
 
     _sendStat(name){
         var arr;
-        if(arr = this.statEventAll[name]){
+        if(arr = this.data.statEventAll[name]){
             for(var i=0,j=arr.length; i<j; i++){
                 var src;
                 if(src = arr[i]) {
@@ -196,17 +188,31 @@ export default class{
         //this.video.muted = false;
 	}
 
-	_initialize(){
-		this.video.innerHTML = '';
-		this.video.load();
-	}
-
-	start(data){
+	start(data){ /* TODO сейчас данные никакие не передаются, а сохраняются при инициализции плеера. Пока не знаю как лучше будет */
 		var self = this;
-
         this.wrapper.className = 'advPlayer advPlayer-active  advPlayer-waiting';
-        self._reloadData.call(self, data);
+        self._reloadData.call(self, self.data);
+
+		/* оправляем статистику начала проигрывания */
+		var ImpressionAll = this.data.ImpressionAll;
+		for(var i=0,j=ImpressionAll.length; i<j; i++){
+			var src;
+			if(src = ImpressionAll[i].childNodes[0].nodeValue) {
+				var image = document.createElement('IMG');
+
+				//
+				image.src = src;
+				image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
+				document.body.appendChild(image);
+			}
+		}
     }
+
+	abort(){
+		if(this.video.paused) return;
+		this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
+		this.video.pause();
+	}
 
     del(){
         this.video.onloadedmetadata = function(){};

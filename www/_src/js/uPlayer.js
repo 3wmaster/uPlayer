@@ -6,7 +6,7 @@ export default function (root, doc){
     var uPlayer = function(wrapper){
         var param = JSON.parse(wrapper.getAttribute('data-param'));
         if(!param.name) param.name = 'player-' + String(Math.random()).slice(-6);
-        if(!uPlayer.all[param.name]) uPlayer.all[param.name] = new CombinedPlayer(wrapper, param.name);
+        if(!uPlayer.all[param.name]) uPlayer.all[param.name] = new CombinedPlayer(wrapper, param);
         return uPlayer.all[param.name];
     }
 

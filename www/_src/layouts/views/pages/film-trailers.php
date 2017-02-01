@@ -8,8 +8,7 @@
         "age":12,
         "category":"дублированный трейлер",
         "allVideoLink":"https://www.kinoafisha.info/movies/8321273/video/",
-        "online":"https://www.kinoafisha.info/",
-        "adv": "hide"
+        "online":"https://www.kinoafisha.info/"
     }' class="combinedPlayer"></div>
 <br />
 
