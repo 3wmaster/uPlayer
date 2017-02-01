@@ -1,9 +1,10 @@
 
 export default class{
-	constructor(oUPlayer){
-		this._createElements(oUPlayer);
+	constructor(oUPlayer, data){
+		this._createElements(oUPlayer, data);
 		this._addEventsName();
 		this._addEvents();
+        this._initialize();
 	}
 
     _getHtml(){
@@ -27,11 +28,12 @@ export default class{
                 '</div>';
     }
 
-	_createElements(oUPlayer){
+	_createElements(oUPlayer, data){
         this.oUPlayer = oUPlayer;
-        this.insert = oUPlayer.insert;
+        this.data = data;
+        this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="adv"]');
         this.insert.innerHTML = this._getHtml();
-        this.wrapper = oUPlayer.insert.firstChild;
+        this.wrapper = this.insert.firstChild;
         this.param = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
 		this.video = this.wrapper.querySelector('[data-js="adv-video"]');
 		this.clickingBtn = this.wrapper.querySelector('[data-js="adv-clicking-btn"]');
@@ -194,107 +196,16 @@ export default class{
         //this.video.muted = false;
 	}
 
-	initialize(){
+	_initialize(){
 		this.video.innerHTML = '';
 		this.video.load();
 	}
 
-	show(){
+	start(data){
 		var self = this;
 
         this.wrapper.className = 'advPlayer advPlayer-active  advPlayer-waiting';
-
-       //if(this.param.advType === 'VAST'){
-            var url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
-               // path = 'https://static.kinoafisha.info/static/html/vast.xml?rnd=' + new Date().getTime(),
-                path = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref='+ url +'&page-ref='+ url +'&rnd=' + new Date().getTime(),
-                x = new XMLHttpRequest();
-
-
-            //
-            x.withCredentials = true;
-            x.open("GET", path, true);
-            x.onload = function (){
-                var parser = new DOMParser ();
-                var xmlDoc = parser.parseFromString (x.responseText, "text/xml");
-                var MediaFile = xmlDoc.getElementById('480p.mp4');
-                var ClickThrough = xmlDoc.getElementsByTagName('ClickThrough')[0];
-                
-                if(MediaFile){
-                    var data = {},
-                        ImpressionAll = xmlDoc.getElementsByTagName('Impression'),
-                        TrackingAll = xmlDoc.getElementsByTagName('Tracking'),
-                        statEventAll = {};
-
-                    data.advVideo = MediaFile.childNodes[0].nodeValue;
-                    data.advLink = ClickThrough.childNodes[0].nodeValue;
-
-                    /* оправляем статистику начала проигрывания */
-                    for(var i=0,j=ImpressionAll.length; i<j; i++){
-                        var src;
-                        if(src = ImpressionAll[i].childNodes[0].nodeValue) {
-                            var image = document.createElement('IMG');
-
-                            //
-                            image.src = src;
-                            image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
-                            document.body.appendChild(image);
-                        }
-                    }
-
-                    /* формируем данные статистики ключевых кадров */
-                    for(var i=0,j=TrackingAll.length; i<j; i++){
-                        var name = TrackingAll[i].getAttribute('event'),
-                            src = TrackingAll[i].childNodes[0].nodeValue;
-                        //
-                        switch(name){
-                            case 'start' : name = '0'; break;
-                            case 'firstQuartile' : name = '25'; break;
-                            case 'midpoint' : name = '50'; break;
-                            case 'thirdQuartile' : name = '75'; break;
-                            case 'complete' : name = '100'; break;
-                        }
-
-                        if(!statEventAll[name]) statEventAll[name] = [];
-                        statEventAll[name].push(src);
-                    }
-
-                    self.keyFrameAll = [0, 25, 50, 75, 100];
-                    self.statEventAll =  statEventAll;
-                    self._reloadData.call(self, data);
-                }
-
-                else{
-                    self.keyFrameAll = [];
-                    self.statEventAll = {};
-                    self._showOur.call(self);
-                }
-            };
-            x.onerror = function(){ /* например, блокировщик рекламы */
-                self.keyFrameAll = [];
-                self.statEventAll = {};
-                self._showOur.call(self);
-            };
-            x.send(null);
-
-        //}
-       // else this._showOur();
-	}
-
-    _showOur(){
-
-        var curTime = new Date().getTime();
-        var advInterval = 24;
-
-
-        if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
-            localStorage.isKinoafishaVideoAdv = curTime;
-            var data = {};
-            data.advVideo = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.' + this.format;
-            data.advLink = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
-            this._reloadData(data);
-        }
-        else this.afterEnd();
+        self._reloadData.call(self, data);
     }
 
     del(){

@@ -8,11 +8,33 @@ import {scriptonload} from '../js/scriptonload';
 var CombinedPlayer =  class {
 	constructor(wrapper, name) {
         this.name = name;
-        this._insertHTML(wrapper);
+        this.countPLayers = 0 ;
+        this.isShowAdv = this.data.adv === 'hide' ? false : true;
+        this._initPlayers();
+
+        //this._insertHTML(wrapper);
 		this._createElements();
 		this._addEvents();
+
         this._checkAutoplay();
 	}
+
+    _initPlayers(){
+        var self = this;
+
+        if(this.isShowAdv)  this._getAdvData();
+        else this.countPLayers++;
+
+        if (this.data.youtube) this._getYoutubeData();  //this._createYoutubePlayer();
+        else this._getHTMLData();  //this._createHTMLPlayer();
+    }
+
+    _checkInitPlayers(){
+        this.countPLayers++;
+        if(this.countPLayers === 2){
+            alert('Все плееры инициализированы. Можно показывать обложку');
+        }
+    }
 
     _insertHTML(wrapper){
         this.wrapper = wrapper;
@@ -42,7 +64,8 @@ var CombinedPlayer =  class {
             '</span>'+
             '</a>';
 
-        this.wrapper.innerHTML = '<div data-CombinedPlayer-insert class="combinedPlayer_insert"></div>'+
+        this.wrapper.innerHTML = '<div data-CombinedPlaye="adv" class="combinedPlayer_insert combinedPlayer_insert-adv">'+
+            '<div data-CombinedPlayer-insert="video" class="combinedPlayer_insert combinedPlayer_insert-video"></div>'+
             '<div class="combinedPlayer_preview" style="background-image:url('+ this.data.cover +')">'+
             '<span class="combinedPlayer_shadow"></span>'+ btns +
             '<div class="combinedPlayer_header">' +
@@ -92,16 +115,14 @@ var CombinedPlayer =  class {
 
         this._sendStat('');
 
-        if(!this.isShowAdv || this.data.adv === 'hide') { /* ||this.isMobileAgent на мобильниках реклама не будет показываться, нужно плееры загружать заранее */
-            if (this.data.youtube) this._createYoutubePlayer();
-            else this._createHTMLPlayer();
-        }
-        else {
-            this._createAdvPlayer();
-            //this.oAdvPlayer.initialize();
-            this.oAdvPlayer.show();
+        if(this.oAdvPlayer) {
+            this.oAdvPlayer.start(data);
             this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
         }
+        else if(this.oHTMLPlayer) {
+            this.oHTMLPlayer.start(data);
+        }
+        else  this.oYoutubePlayer.start(data);
 
         if(this.wrapper.className.indexOf('js-active') === -1) this.wrapper.className = this.wrapper.className + ' js-active';
         if(this.onActive) this.onActive();
@@ -122,10 +143,10 @@ var CombinedPlayer =  class {
         document.body.appendChild(image);
     }
 
-    _createYoutubePlayer(){
+    _getYoutubeData(){
         var self = this,
             checkLoading = function (){
-                if(window.isYouTubeIframeAPIReady) addApi();
+                if(window.isYouTubeIframeAPIReady) self._onSuccessGetYoutubeData.call(self);
                 else{
                     setTimeout(function(){
                         checkLoading();
@@ -158,54 +179,66 @@ var CombinedPlayer =  class {
         checkLoading();
     }
 
-    _createAdvPlayer(){
-        var self = this,
-            path = this.data.isDev ? 'kinoafishaspb.ru' : 'kinoafisha.info',
-            _onSuccess = function(dataApi){
-                self.AdvDataApi = dataApi;
-                if(!self.oAdvPlayer) return false; /* произошло удаление или abort */
-
-                self.oAdvPlayer = new AdvPlayer(self);
-
-                self.oAdvPlayer.afterEnd = function(){
-                    self.oAdvPlayer.del();
-                    delete self.oAdvPlayer;
-                    if (self.data.youtube) self._createYoutubePlayer.call(self);
-                    else self._createHTMLPlayer.call(self);
-                }
-                self.oAdvPlayer.afterAbort = function(){
-                    self._returnOriginalView.call(self, 'oAdvPlayer');
-                }
-                self.oAdvPlayer.afterSkip = function(){
-                    self.oAdvPlayer.del();
-                    delete self.oAdvPlayer;
-                    if (self.data.youtube) self._createYoutubePlayer.call(self);
-                    else self._createHTMLPlayer.call(self);
-                }
-                self.oAdvPlayer.afterClicking = function(){
-                    self._returnOriginalView.call(self, 'oAdvPlayer');
-                }
-            },
-            _onError = function(){};
-
-        //
-
+    _getAdvData(){
+        var self = this;
         var curTime = new Date().getTime();
         var advInterval = 24;
+
+        this.oAdvPlayer = 'loading';
 
         if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
             localStorage.isKinoafishaVideoAdv = curTime;
             var data = {};
             data.advVideo = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
             data.advLink = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
-            _onSuccess(data);
+            this._onSuccessGetAdvData(data);
         }
         else {
             if (self.data.youtube) self._createYoutubePlayer.call(self);
             else self._createHTMLPlayer.call(self);
         }
-        //this.oAdvPlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */
-        //if(this.AdvDataApi) _onSuccess(this.AdvDataApi);
+    }
+
+    _onSuccessGetAdvData(data){
+        var self = this;
+        if(!this.oAdvPlayer) return false;
+        self.oAdvPlayer = new AdvPlayer(self); /* при создании объекта проиходит вставка нужной разметки и инициализация плеера.(IOS) Сами Данные не вставляются */
+        self.oAdvPlayer.afterEnd = function(){
+            self.oAdvPlayer.del();
+            delete self.oAdvPlayer;
+            if (self.data.youtube) self._createYoutubePlayer.call(self);
+            else self._createHTMLPlayer.call(self);
+        }
+        self.oAdvPlayer.afterAbort = function(){
+            self._returnOriginalView.call(self, 'oAdvPlayer');
+        }
+        self.oAdvPlayer.afterSkip = function(){
+            self.oAdvPlayer.del();
+            delete self.oAdvPlayer;
+            if (self.data.youtube) self._createYoutubePlayer.call(self);
+            else self._createHTMLPlayer.call(self);
+        }
+        self.oAdvPlayer.afterClicking = function() {
+            self._returnOriginalView.call(self, 'oAdvPlayer');
+        }
+        self._checkInitPlayers.call(self);
+    }
+
+    _onSuccessGetYoutubeData(){
+        var self = this;
+        var onReady = function(event){
+            self._checkInitPlayers.call(self);
+        }
+
+        if(!self.oYoutubePlayer) return false;
+
+        self.oYoutubePlayer = new YoutubePlayer(self, onReady);
+        self.oYoutubePlayer.afterEnd = function(){
+            self._returnOriginalView.call(self, 'oYoutubePlayer');
+        }
+        self.oYoutubePlayer.afterAbort = function(){
+            self._returnOriginalView.call(self, 'oYoutubePlayer');
+        }
     }
 
     _createHTMLPlayer(){

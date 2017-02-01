@@ -1,25 +1,23 @@
 var YoutubePlayer =  class {
-	constructor(oUPlayer) {
+	constructor(oUPlayer, onReady) {
         oUPlayer.insert.innerHTML = '<iframe class="combinedPlayer_youtube" src="'+ oUPlayer.data.youtube +'?enablejsapi=1" allowfullscreen="" frameborder="0"></iframe>';
-        this.ready = false;
         var self = this;
 
         this.oUPlayer = oUPlayer;
         this.YT = new YT.Player(oUPlayer.insert.firstChild, {
             events: {
-                'onReady': function(event){self._onPlayerReady.call(self, event)},
+                'onReady': function(event){onReady(event)},
                 'onStateChange': function(event){self._onPlayerStateChange.call(self, event)}
             }
         });
 	}
 
-    _onPlayerReady(event){
-        this.ready = true;
-        event.target.playVideo();
-    }
-
     _onPlayerStateChange(event){
         if(event.data === 0) this.afterEnd();
+    }
+
+    start(){
+
     }
 
     abort(){
