@@ -212,7 +212,7 @@ var CombinedPlayer =  class {
              * во время загрузки белый экран. Нужно показывать прелоадер
               * */
             this.oHTMLPlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */
-            scriptRequest('https://api.'+ path +'/player/info/' + this.data.trailer_id + '/', function(dataApi){_onSuccess(dataApi)}, function(){_onError()});
+            scriptRequest('//api.'+ path +'/player/info/' + this.data.trailer_id + '/', function(dataApi){_onSuccess(dataApi)}, function(){_onError()});
         }
     }
 
