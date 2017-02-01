@@ -209,7 +209,7 @@ var CombinedPlayer =  class {
         if(this.HTMLDataApi) _onSuccess(this.HTMLDataApi);
         else {
             /* TODO
-             * во время загрузки белый экран. Нужно показывать прелоадер
+             * во время загрузки белый экран. Нужно показывать  прелоадер
               * */
             this.oHTMLPlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */
             scriptRequest('//api.'+ path +'/player/info/' + this.data.trailer_id + '/', function(dataApi){_onSuccess(dataApi)}, function(){_onError()});
