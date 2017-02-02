@@ -185,15 +185,13 @@ var _default = (function () {
 		/* оправляем статистику начала проигрывания */
 		var ImpressionAll = this.data.ImpressionAll;
 		for (var i = 0, j = ImpressionAll.length; i < j; i++) {
-			var src;
-			if (src = ImpressionAll[i].childNodes[0].nodeValue) {
-				var image = document.createElement('IMG');
+			var src = ImpressionAll[i];
+			var image = document.createElement('IMG');
 
-				//
-				image.src = src;
-				image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
-				document.body.appendChild(image);
-			}
+			//
+			image.src = src;
+			image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
+			document.body.appendChild(image);
 		}
 	};
 

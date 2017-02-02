@@ -185,15 +185,13 @@ var _default = (function () {
 		/* оправляем статистику начала проигрывания */
 		var ImpressionAll = this.data.ImpressionAll;
 		for (var i = 0, j = ImpressionAll.length; i < j; i++) {
-			var src;
-			if (src = ImpressionAll[i].childNodes[0].nodeValue) {
-				var image = document.createElement('IMG');
+			var src = ImpressionAll[i];
+			var image = document.createElement('IMG');
 
-				//
-				image.src = src;
-				image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
-				document.body.appendChild(image);
-			}
+			//
+			image.src = src;
+			image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
+			document.body.appendChild(image);
 		}
 	};
 
@@ -253,14 +251,12 @@ var CombinedPlayer = (function () {
         this._insertHTML(wrapper); /*  */
         this.btn = this.wrapper.querySelector('[data-CombinedPlayer-btn]');
         this.isMobileAgent = this._defineUserAgent();
-        this.isShowAdv = true;
         this.oAdvPlayer = undefined;
         this.oHTMLPlayer = undefined;
         this.oYoutubePlayer = undefined;
         this.HTMLDataApi; /* данные Html плеера. будем загружать только один раз и зранить здесь */
         this._initPlayers();
         this._addEvents();
-        this._checkAutoplay();
     }
 
     CombinedPlayer.prototype._initPlayers = function _initPlayers() {
@@ -274,7 +270,9 @@ var CombinedPlayer = (function () {
     CombinedPlayer.prototype._checkInitPlayers = function _checkInitPlayers() {
         this.countPLayers++;
         if (this.countPLayers === 2) {
-            alert('Все плееры инициализированы. Можно показывать обложку');
+            // Все плееры инициализированы. Можно показывать обложку и, при необходимости, сразу запускать
+            if (this.data.autoplay && !uPlayer.isNeedActivation) this._start();
+            this.wrapper.className = this.wrapper.className + ' js-ready';
         }
     };
 
@@ -306,10 +304,6 @@ var CombinedPlayer = (function () {
             e.preventDefault();
             self._start.call(self);
         });
-    };
-
-    CombinedPlayer.prototype._checkAutoplay = function _checkAutoplay() {
-        if (this.data.autoplay) this._start();
     };
 
     CombinedPlayer.prototype._start = function _start() {
@@ -362,7 +356,6 @@ var CombinedPlayer = (function () {
             _onError = function _onError() {};
 
         //
-        this.oHTMLPlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */ /* TODO не нужно, потому что все данные теперь подгружаются заранее */
         if (this.HTMLDataApi) _onSuccess(this.HTMLDataApi);else {
             _jsScriptRequest.scriptRequest('//api.' + path + '/player/info/' + this.data.trailer_id + '/', function (dataApi) {
                 _onSuccess(dataApi);
@@ -383,8 +376,6 @@ var CombinedPlayer = (function () {
         };
 
         //
-        this.oYoutubePlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */
-
         if (!window.onYouTubeIframeAPIReady) {
             window.onYouTubeIframeAPIReady = function () {
                 window.isYouTubeIframeAPIReady = true;
@@ -401,17 +392,16 @@ var CombinedPlayer = (function () {
         var self = this;
         var data = {}; /* урл, ссылка, статистика итд */
         var curTime = new Date().getTime();
-        var advInterval = 0;
+        var advInterval = 24;
 
         var url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
 
-        // path = 'https://static.kinoafisha.info/static/html/vast.xml?rnd=' + new Date().getTime(),
+        //path = 'https://static.kinoafisha.info/static/html/vast.xml?rnd=' + new Date().getTime(),
         path = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=' + url + '&page-ref=' + url + '&rnd=' + new Date().getTime(),
             x = new XMLHttpRequest();
 
         var _getOur = function _getOur() {
             if (localStorage && !localStorage.isKinoafishaVideoAdv || (curTime - parseFloat(localStorage.isKinoafishaVideoAdv)) / 1000 / 60 / 60 > advInterval) {
-                self.oAdvPlayer = 'loading';
                 localStorage.isKinoafishaVideoAdv = curTime;
                 data.advVideo = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
                 data.advLink = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
@@ -483,7 +473,6 @@ var CombinedPlayer = (function () {
 
     CombinedPlayer.prototype._onSuccessGetHtmlData = function _onSuccessGetHtmlData(data) {
         var self = this;
-        if (!self.oHTMLPlayer) return false; /* произошло удаление или abort */
 
         self.oHTMLPlayer = new _jsHTMLPlayer2['default'](self, data);
         self.oHTMLPlayer.afterEnd = function () {
@@ -494,7 +483,6 @@ var CombinedPlayer = (function () {
 
     CombinedPlayer.prototype._onSuccessGetAdvData = function _onSuccessGetAdvData(data) {
         var self = this;
-        if (!this.oAdvPlayer) return false;
         self.oAdvPlayer = new _jsAdvPlayer2['default'](self, data); /* при создании объекта проиходит вставка нужной разметки и инициализация плеера.(IOS) Сами Данные не вставляются */
         self.oAdvPlayer.afterEnd = function () {
             if (self.oYoutubePlayer) self.oYoutubePlayer.start();else self.oHTMLPlayer.start();
@@ -518,8 +506,6 @@ var CombinedPlayer = (function () {
         var onReady = function onReady(event) {
             self._checkInitPlayers.call(self);
         };
-
-        if (!self.oYoutubePlayer) return false;
 
         self.oYoutubePlayer = new _jsYoutubePlayer.YoutubePlayer(self, onReady);
         self.oYoutubePlayer.afterEnd = function () {
@@ -1113,13 +1099,15 @@ var _default = (function () {
 		/* нафиг теперь не нужно, нужно сразу запускать */
 		var cls = this.wrapper.className.replace(/\s*htmlPlayer-(ready|poster|disabled)/g, '') + ' htmlPlayer-ready';
 
-		if (this.isAutoPlay) {
-			this.isAutoPlay = false;
-			this.paramPlayer.autoplay = false;
-
-			this._showControlsAtTime();
-			this.video.play();
-		}
+		/* TODO убрать */
+		/*if(this.isAutoPlay){
+  	this.isAutoPlay = false;
+  	this.paramPlayer.autoplay = false;
+  			this._showControlsAtTime();
+  	this.video.play();
+  }*/
+		this._showControlsAtTime();
+		this.video.play();
 		this.wrapper.className = cls;
 	};
 

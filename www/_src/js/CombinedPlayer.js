@@ -11,18 +11,16 @@ var CombinedPlayer =  class {
         this.data = param;
         this.name = this.data.name;
         this.countPLayers = 0 ;
-        this.isShowAdv = this.data.adv === 'hide' ? false : true;
+        this.isShowAdv = (this.data.adv === 'hide' ? false : true);
         this._insertHTML(wrapper); /*  */
         this.btn = this.wrapper.querySelector('[data-CombinedPlayer-btn]');
         this.isMobileAgent = this._defineUserAgent();
-        this.isShowAdv = true;
         this.oAdvPlayer = undefined;
         this.oHTMLPlayer = undefined;
         this.oYoutubePlayer = undefined;
         this.HTMLDataApi; /* данные Html плеера. будем загружать только один раз и зранить здесь */
         this._initPlayers();
 		this._addEvents();
-        this._checkAutoplay();
 	}
 
     _initPlayers(){
@@ -38,7 +36,9 @@ var CombinedPlayer =  class {
     _checkInitPlayers(){
         this.countPLayers++;
         if(this.countPLayers === 2){
-            alert('Все плееры инициализированы. Можно показывать обложку');
+            // Все плееры инициализированы. Можно показывать обложку и, при необходимости, сразу запускать
+            if(this.data.autoplay && !uPlayer.isNeedActivation) this._start();
+            this.wrapper.className = this.wrapper.className + ' js-ready';
         }
     }
 
@@ -98,10 +98,6 @@ var CombinedPlayer =  class {
         });
 	}
 
-    _checkAutoplay(){
-        if(this.data.autoplay) this._start();
-    }
-
     _start(){
         uPlayer.abortAll(this);
 
@@ -154,7 +150,6 @@ var CombinedPlayer =  class {
             _onError = function(){};
 
         //
-        this.oHTMLPlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */ /* TODO не нужно, потому что все данные теперь подгружаются заранее */
         if(this.HTMLDataApi) _onSuccess(this.HTMLDataApi);
         else {
             scriptRequest('//api.'+ path +'/player/info/' + this.data.trailer_id + '/', function(dataApi){_onSuccess(dataApi)}, function(){_onError()});
@@ -173,8 +168,6 @@ var CombinedPlayer =  class {
             };
 
         //
-        this.oYoutubePlayer = 'loading'; /* если вдруг запустили другой плеер, загрузку будем прерывать  */
-
         if(!window.onYouTubeIframeAPIReady){
             window.onYouTubeIframeAPIReady = function(){
                 window.isYouTubeIframeAPIReady = true;
@@ -190,16 +183,15 @@ var CombinedPlayer =  class {
         var self = this;
         var data = {}; /* урл, ссылка, статистика итд */
         var curTime = new Date().getTime();
-        var advInterval = 0;
+        var advInterval = 24;
 
         var url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
-        // path = 'https://static.kinoafisha.info/static/html/vast.xml?rnd=' + new Date().getTime(),
+            //path = 'https://static.kinoafisha.info/static/html/vast.xml?rnd=' + new Date().getTime(),
             path = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref='+ url +'&page-ref='+ url +'&rnd=' + new Date().getTime(),
             x = new XMLHttpRequest();
 
         var _getOur = function(){
             if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
-                self.oAdvPlayer = 'loading';
                 localStorage.isKinoafishaVideoAdv = curTime;
                 data.advVideo = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
                 data.advLink = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
@@ -264,12 +256,11 @@ var CombinedPlayer =  class {
             else _getOur();
         };
         x.onerror = _getOur; /* например, блокировщик рекламы */
-        x.send(null);
+       x.send(null);
     }
 
     _onSuccessGetHtmlData(data){
         var self = this;
-        if(!self.oHTMLPlayer) return false; /* произошло удаление или abort */
 
         self.oHTMLPlayer = new HTMLPlayer(self, data);
         self.oHTMLPlayer.afterEnd = function(){
@@ -280,7 +271,6 @@ var CombinedPlayer =  class {
 
     _onSuccessGetAdvData(data){
         var self = this;
-        if(!this.oAdvPlayer) return false;
         self.oAdvPlayer = new AdvPlayer(self, data); /* при создании объекта проиходит вставка нужной разметки и инициализация плеера.(IOS) Сами Данные не вставляются */
         self.oAdvPlayer.afterEnd = function(){
             if(self.oYoutubePlayer) self.oYoutubePlayer.start();
@@ -307,7 +297,6 @@ var CombinedPlayer =  class {
             self._checkInitPlayers.call(self);
         }
 
-        if(!self.oYoutubePlayer) return false;
 
         self.oYoutubePlayer = new YoutubePlayer(self, onReady);
         self.oYoutubePlayer.afterEnd = function(){

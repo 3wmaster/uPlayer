@@ -19,7 +19,7 @@
     <meta name="viewport" content="width=device-width">
 
     <link rel="stylesheet" href="/static/css/uPlayer.css" media="all">
-    <script src="/static/js/vendors/uPlayer.js"></script>
+    <script src="/static/js/vendors/uPlayer.js?34"></script>
 </head>
 
 <body>

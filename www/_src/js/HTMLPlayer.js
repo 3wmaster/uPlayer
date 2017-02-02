@@ -648,13 +648,16 @@ export default class{
 	_ready(){/* нафиг теперь не нужно, нужно сразу запускать */
 		var cls = this.wrapper.className.replace(/\s*htmlPlayer-(ready|poster|disabled)/g, '') + ' htmlPlayer-ready';
 
-		if(this.isAutoPlay){
+		/* TODO убрать */
+		/*if(this.isAutoPlay){
 			this.isAutoPlay = false;
 			this.paramPlayer.autoplay = false;
 
 			this._showControlsAtTime();
 			this.video.play();
-		}
+		}*/
+		this._showControlsAtTime();
+		this.video.play();
 		this.wrapper.className = cls;
 	}
 
