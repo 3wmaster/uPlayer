@@ -8,7 +8,7 @@ import {scriptonload} from '../js/scriptonload';
 var CombinedPlayer =  class {
 	constructor(wrapper, param) {
         this.wrapper = wrapper;
-        this.data = param;
+        this.data = param; /* TODO change this.data to this.param */
         this.name = this.data.name;
         this.countPLayers = 0 ;
         this.isShowAdv = (this.data.adv === 'hide' ? false : true);
@@ -180,25 +180,30 @@ var CombinedPlayer =  class {
     }
 
     _getAdvData(){
-        var self = this;
-        var data = {}; /* урл, ссылка, статистика итд */
-        var curTime = new Date().getTime();
-        var advInterval = 24;
-
-        var url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
-            //path = 'https://static.kinoafisha.info/static/html/vast.xml?rnd=' + new Date().getTime(),
-            path = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref='+ url +'&page-ref='+ url +'&rnd=' + new Date().getTime(),
-            x = new XMLHttpRequest();
-
-        var _getOur = function(){
-            if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
-                localStorage.isKinoafishaVideoAdv = curTime;
-                data.advVideo = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
-                data.advLink = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
-                self._onSuccessGetAdvData.call(self, data);
-            }
-            else self._checkInitPlayers.call(self);
-        };
+        var self = this,
+            data = {}, /* урл, ссылка, статистика итд */
+            curTime = new Date().getTime(),
+            advInterval = 24,
+            url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
+            rnd = new Date().getTime(),
+            //pathYandex = 'https://static.kinoafisha.info/static/html/vast.xml?rnd=' + rnd,
+            pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref='+ url +'&page-ref='+ url +'&rnd=' + rnd,
+            //pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
+            pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?' +
+                'sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&' +
+                'impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&' +
+                'cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
+            path = self.data.adv === 'Google' ? pathGoogle : pathYandex,
+            x = new XMLHttpRequest(),
+            _getOur = function(){
+                if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
+                    localStorage.isKinoafishaVideoAdv = curTime;
+                    data.advVideo = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
+                    data.advLink = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
+                    self._onSuccessGetAdvData.call(self, data);
+                }
+                else self._checkInitPlayers.call(self);
+            };
 
         //
         data.advVideo = undefined;
@@ -208,12 +213,25 @@ var CombinedPlayer =  class {
         data.statEventAll = {};/* соотв им названия, например, при 50% - название midpoint итд */
 
         //
-        x.withCredentials = true;
+        //x.withCredentials = true; /* TODO это для теста */
         x.open("GET", path, true);
         x.onload = function (){
+
             var parser = new DOMParser ();
             var xmlDoc = parser.parseFromString (x.responseText, "text/xml");
-            var MediaFile = xmlDoc.getElementById('480p.mp4');
+            console.log(x.responseText);
+            var MediaFile = function(){
+                var files = xmlDoc.getElementsByTagName('MediaFile');
+                for(var i= 0,j=files.length;i<j;i++){
+                    var file = files[i],
+                        type = file.getAttribute('type'),
+                        w = file.getAttribute('width');
+
+                    //
+                    if(type == 'video/mp4' && w == 640) return file;
+                }
+                return false;
+            }();
             var ClickThrough = xmlDoc.getElementsByTagName('ClickThrough')[0];
 
             if(MediaFile){
