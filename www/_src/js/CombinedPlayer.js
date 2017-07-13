@@ -4,6 +4,7 @@ import HTMLPlayer from '../js/HTMLPlayer';
 import AdvPlayer from '../js/AdvPlayer';
 import {YoutubePlayer} from '../js/YoutubePlayer';
 import {scriptonload} from '../js/scriptonload';
+import {VAST} from '../js/VAST';
 
 var CombinedPlayer =  class {
 	constructor(wrapper, param) {
@@ -186,95 +187,39 @@ var CombinedPlayer =  class {
             advInterval = 24,
             url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
             rnd = new Date().getTime(),
-            //pathYandex = 'https://static.kinoafisha.info/static/html/vast.xml?rnd=' + rnd,
-            pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref='+ url +'&page-ref='+ url +'&rnd=' + rnd,
+            pathYandexTest = 'https://static.kinoafisha.info/static/html/vast.xml?1=1',
+            pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref='+ url +'&page-ref='+ url,
             //pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
             pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?' +
                 'sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&' +
                 'impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&' +
                 'cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
-            path = self.data.adv === 'Google' ? pathGoogle : pathYandex,
-            x = new XMLHttpRequest(),
+            //Можно использовать даже боевой тег, добавив в него параметры- вот так http://data.videonow.ru/?profile_id=695851&format=vast&vpaid=1&flash=0 - отдается наш JS-VPID
+            pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll',
+            //path = self.data.adv === 'Google' ? pathGoogle : pathYandex,
+            path = pathVideonow,
+            vastObj = new VAST({
+                path: path,
+                onSuccess:function(data){
+                    console.log('onSuccessGetAdvData', data);
+                    self._onSuccessGetAdvData.call(self, data);
+                },
+                onError:function(){
+                    console.log('Error');
+                    _getOur(); /* например, блокировщик рекламы */
+                }
+            }),
             _getOur = function(){
                 if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
                     localStorage.isKinoafishaVideoAdv = curTime;
-                    data.advVideo = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
-                    data.advLink = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
+                    data.mediaFile = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
+                    data.clickThrough = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
+                    data.ImpressionAll = [];
+                    data.statEventAll = {};
                     self._onSuccessGetAdvData.call(self, data);
                 }
                 else self._checkInitPlayers.call(self);
             };
-
-        //
-        data.advVideo = undefined;
-        data.advLink = undefined;
-        data.ImpressionAll = []; /* src статистика начала проигрывания */
-        data.keyFrameAll = []; /* ключевые кадры в процентах */
-        data.statEventAll = {};/* соотв им названия, например, при 50% - название midpoint итд */
-
-        //
-        //x.withCredentials = true; /* TODO это для теста */
-        x.open("GET", path, true);
-        x.onload = function (){
-
-            var parser = new DOMParser ();
-            var xmlDoc = parser.parseFromString (x.responseText, "text/xml");
-            console.log(x.responseText);
-            var MediaFile = function(){
-                var files = xmlDoc.getElementsByTagName('MediaFile');
-                for(var i= 0,j=files.length;i<j;i++){
-                    var file = files[i],
-                        type = file.getAttribute('type'),
-                        w = file.getAttribute('width');
-
-                    //
-                    if(type == 'video/mp4' && w == 640) return file;
-                }
-                return false;
-            }();
-            var ClickThrough = xmlDoc.getElementsByTagName('ClickThrough')[0];
-
-            if(MediaFile){
-                var ImpressionAll = xmlDoc.getElementsByTagName('Impression'),
-                    TrackingAll = xmlDoc.getElementsByTagName('Tracking'),
-                    statEventAll = {};
-
-                data.advVideo = MediaFile.childNodes[0].nodeValue;
-                data.advLink = ClickThrough.childNodes[0].nodeValue;
-
-                /* определяем src для статистики начала проигрывания */
-                for(var i=0,j=ImpressionAll.length; i<j; i++){
-                    var src;
-                    if(src = ImpressionAll[i].childNodes[0].nodeValue) data.ImpressionAll.push(src);
-                }
-
-                /* формируем данные статистики ключевых кадров */
-                for(var i=0,j=TrackingAll.length; i<j; i++){
-                    var name = TrackingAll[i].getAttribute('event'),
-                        src = TrackingAll[i].childNodes[0].nodeValue;
-                    //
-                    switch(name){
-                        case 'start' : name = '0'; break;
-                        case 'firstQuartile' : name = '25'; break;
-                        case 'midpoint' : name = '50'; break;
-                        case 'thirdQuartile' : name = '75'; break;
-                        case 'complete' : name = '100'; break;
-                    }
-
-                    if(!statEventAll[name]) statEventAll[name] = [];
-                    statEventAll[name].push(src);
-                }
-
-
-                data.keyFrameAll = [0, 25, 50, 75, 100];
-                data.statEventAll =  statEventAll;
-
-                self._onSuccessGetAdvData.call(self, data);
-            }
-            else _getOur();
-        };
-        x.onerror = _getOur; /* например, блокировщик рекламы */
-       x.send(null);
     }
 
     _onSuccessGetHtmlData(data){

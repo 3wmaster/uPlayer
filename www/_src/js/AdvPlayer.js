@@ -120,9 +120,9 @@ export default class{
         var source = document.createElement('SOURCE');
 
         //
-        this.clickingBtn.setAttribute('href', data.advLink);
+        this.clickingBtn.setAttribute('href', data.clickThrough);
 		this.video.innerHTML = '';
-		source.setAttribute('src', data.advVideo);
+		source.setAttribute('src', data.mediaFile);
 		source.setAttribute('type', 'video/' + this.format);
 		this.video.appendChild(source);
 		this.video.load();
@@ -194,7 +194,7 @@ export default class{
         self._reloadData.call(self, self.data);
 
 		/* оправляем статистику начала проигрывания */
-		var ImpressionAll = this.data.ImpressionAll;
+		var ImpressionAll = this.data.impressionAll;
 		for(var i=0,j=ImpressionAll.length; i<j; i++){
 			var src = ImpressionAll[i];
 			var image = document.createElement('IMG');

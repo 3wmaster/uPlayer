@@ -108,9 +108,9 @@ var _default = (function () {
 		var source = document.createElement('SOURCE');
 
 		//
-		this.clickingBtn.setAttribute('href', data.advLink);
+		this.clickingBtn.setAttribute('href', data.clickThrough);
 		this.video.innerHTML = '';
-		source.setAttribute('src', data.advVideo);
+		source.setAttribute('src', data.mediaFile);
 		source.setAttribute('type', 'video/' + this.format);
 		this.video.appendChild(source);
 		this.video.load();
@@ -183,7 +183,7 @@ var _default = (function () {
 		self._reloadData.call(self, self.data);
 
 		/* оправляем статистику начала проигрывания */
-		var ImpressionAll = this.data.ImpressionAll;
+		var ImpressionAll = this.data.impressionAll;
 		for (var i = 0, j = ImpressionAll.length; i < j; i++) {
 			var src = ImpressionAll[i];
 			var image = document.createElement('IMG');
@@ -238,6 +238,8 @@ var _jsAdvPlayer2 = _interopRequireDefault(_jsAdvPlayer);
 var _jsYoutubePlayer = require('../js/YoutubePlayer');
 
 var _jsScriptonload = require('../js/scriptonload');
+
+var _jsVAST = require('../js/VAST');
 
 var CombinedPlayer = (function () {
     function CombinedPlayer(wrapper, param) {
@@ -396,96 +398,38 @@ var CombinedPlayer = (function () {
             advInterval = 24,
             url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
             rnd = new Date().getTime(),
-
-        //pathYandex = 'https://static.kinoafisha.info/static/html/vast.xml?rnd=' + rnd,
-        pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=' + url + '&page-ref=' + url + '&rnd=' + rnd,
+            pathYandexTest = 'https://static.kinoafisha.info/static/html/vast.xml?1=1',
+            pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=' + url + '&page-ref=' + url,
 
         //pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
         pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?' + 'sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&' + 'impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&' + 'cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
-            path = self.data.adv === 'Google' ? pathGoogle : pathYandex,
-            x = new XMLHttpRequest(),
+
+        //Можно использовать даже боевой тег, добавив в него параметры- вот так http://data.videonow.ru/?profile_id=695851&format=vast&vpaid=1&flash=0 - отдается наш JS-VPID
+        pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll',
+
+        //path = self.data.adv === 'Google' ? pathGoogle : pathYandex,
+        path = pathVideonow,
+            vastObj = new _jsVAST.VAST({
+            path: path,
+            onSuccess: function onSuccess(data) {
+                console.log('onSuccessGetAdvData', data);
+                self._onSuccessGetAdvData.call(self, data);
+            },
+            onError: function onError() {
+                console.log('Error');
+                _getOur(); /* например, блокировщик рекламы */
+            }
+        }),
             _getOur = function _getOur() {
             if (localStorage && !localStorage.isKinoafishaVideoAdv || (curTime - parseFloat(localStorage.isKinoafishaVideoAdv)) / 1000 / 60 / 60 > advInterval) {
                 localStorage.isKinoafishaVideoAdv = curTime;
-                data.advVideo = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
-                data.advLink = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
+                data.mediaFile = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
+                data.clickThrough = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
+                data.ImpressionAll = [];
+                data.statEventAll = {};
                 self._onSuccessGetAdvData.call(self, data);
             } else self._checkInitPlayers.call(self);
         };
-
-        //
-        data.advVideo = undefined;
-        data.advLink = undefined;
-        data.ImpressionAll = []; /* src статистика начала проигрывания */
-        data.keyFrameAll = []; /* ключевые кадры в процентах */
-        data.statEventAll = {}; /* соотв им названия, например, при 50% - название midpoint итд */
-
-        //
-        //x.withCredentials = true; /* TODO это для теста */
-        x.open("GET", path, true);
-        x.onload = function () {
-
-            var parser = new DOMParser();
-            var xmlDoc = parser.parseFromString(x.responseText, "text/xml");
-            console.log(x.responseText);
-            var MediaFile = (function () {
-                var files = xmlDoc.getElementsByTagName('MediaFile');
-                for (var i = 0, j = files.length; i < j; i++) {
-                    var file = files[i],
-                        type = file.getAttribute('type'),
-                        w = file.getAttribute('width');
-
-                    //
-                    if (type == 'video/mp4' && w == 640) return file;
-                }
-                return false;
-            })();
-            var ClickThrough = xmlDoc.getElementsByTagName('ClickThrough')[0];
-
-            if (MediaFile) {
-                var ImpressionAll = xmlDoc.getElementsByTagName('Impression'),
-                    TrackingAll = xmlDoc.getElementsByTagName('Tracking'),
-                    statEventAll = {};
-
-                data.advVideo = MediaFile.childNodes[0].nodeValue;
-                data.advLink = ClickThrough.childNodes[0].nodeValue;
-
-                /* определяем src для статистики начала проигрывания */
-                for (var i = 0, j = ImpressionAll.length; i < j; i++) {
-                    var src;
-                    if (src = ImpressionAll[i].childNodes[0].nodeValue) data.ImpressionAll.push(src);
-                }
-
-                /* формируем данные статистики ключевых кадров */
-                for (var i = 0, j = TrackingAll.length; i < j; i++) {
-                    var name = TrackingAll[i].getAttribute('event'),
-                        src = TrackingAll[i].childNodes[0].nodeValue;
-                    //
-                    switch (name) {
-                        case 'start':
-                            name = '0';break;
-                        case 'firstQuartile':
-                            name = '25';break;
-                        case 'midpoint':
-                            name = '50';break;
-                        case 'thirdQuartile':
-                            name = '75';break;
-                        case 'complete':
-                            name = '100';break;
-                    }
-
-                    if (!statEventAll[name]) statEventAll[name] = [];
-                    statEventAll[name].push(src);
-                }
-
-                data.keyFrameAll = [0, 25, 50, 75, 100];
-                data.statEventAll = statEventAll;
-
-                self._onSuccessGetAdvData.call(self, data);
-            } else _getOur();
-        };
-        x.onerror = _getOur; /* например, блокировщик рекламы */
-        x.send(null);
     };
 
     CombinedPlayer.prototype._onSuccessGetHtmlData = function _onSuccessGetHtmlData(data) {
@@ -560,7 +504,7 @@ var CombinedPlayer = (function () {
 //
 exports.CombinedPlayer = CombinedPlayer;
 
-},{"../js/AdvPlayer":1,"../js/HTMLPlayer":3,"../js/YoutubePlayer":5,"../js/event":6,"../js/scriptRequest":7,"../js/scriptonload":8}],3:[function(require,module,exports){
+},{"../js/AdvPlayer":1,"../js/HTMLPlayer":3,"../js/VAST":5,"../js/YoutubePlayer":6,"../js/event":7,"../js/scriptRequest":8,"../js/scriptonload":9}],3:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1314,6 +1258,183 @@ exports.__esModule = true;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
+var _jsScriptonload = require('../js/scriptonload');
+
+var VAST = (function () {
+	function VAST(param) {
+		_classCallCheck(this, VAST);
+
+		this.param = param;
+		this._createElements();
+		this._add(this.param.path);
+	}
+
+	VAST.prototype._createElements = function _createElements() {
+		this.data = {}; /* все данные с тега */
+		this.data.mediaFile = undefined; /* ссылка на mp4 файл */
+		this.data.clickThrough = undefined; /* ссылка с видео */
+		this.data.clickTrackingAll = []; /* статистика клика по видео */
+		this.data.impressionAll = []; /* src статистика начала проигрывания */
+		this.data.keyFrameAll = [0, 25, 50, 75, 100]; /* ключевые кадры в процентах */
+		this.data.statEventAll = {}; /* соотв им названия, например, при 50% - название midpoint итд */
+		this.xhr = false; /* XMLHttpRequest */
+	};
+
+	VAST.prototype._add = function _add(path) {
+		var _this = this;
+
+		this._getAdTag(path, function (adTag) {
+			if (!adTag) {
+				console.error('uPlayer', 'пустой тег (яндекс, например) или <nobanner></nobanner>');
+				_this.param.onError();
+			} else {
+				/* может быть как в WrapperAd так и в прямой рекламе */
+				var videoClicksTag = adTag.querySelector('VideoClicks'),
+				    clickTrackingAll = videoClicksTag ? videoClicksTag.querySelectorAll('ClickTracking') : null,
+				    impressionAll = adTag.querySelectorAll('Impression'),
+				    trackingEventsTag = adTag.querySelector('TrackingEvents');
+
+				//
+				if (clickTrackingAll) _this._pushCDATA(clickTrackingAll, 'clickTrackingAll');
+				if (impressionAll.length) _this._pushCDATA(impressionAll, 'impressionAll');
+				if (trackingEventsTag) _this._pushTrackingEvents(trackingEventsTag);
+
+				// WrapperAd или нет
+				if (adTag.firstElementChild.nodeName === 'Wrapper') {
+					var path = _this._getAdURI(adTag);
+					_this._add(path);
+				} else {
+					/* TODO - здесь будет проверяться VPAID */
+
+					if (!_this._pushMediaFile(adTag)) {
+						_this.param.onError(); //медиафайл может не подходить (не мп4 VPAID итд)
+					} else {
+							_this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+							_this.param.onSuccess(_this.data); /* все получено, всего хватает, можно запускать рекламу */
+						}
+				}
+			}
+		});
+	};
+
+	VAST.prototype._pushCDATA = function _pushCDATA(tags, key) {
+		var _this2 = this;
+
+		tags.forEach(function (tag) {
+			var textNode = tag.childNodes[0];
+			if (textNode) _this2.data[key].push(textNode.wholeText.replace(/^\s+/, '').replace(/\s+$/, ''));
+		});
+	};
+
+	VAST.prototype._pushTrackingEvents = function _pushTrackingEvents(tag) {
+		var TrackingAll = tag.getElementsByTagName('Tracking');
+
+		for (var i = 0, j = TrackingAll.length; i < j; i++) {
+			var name = TrackingAll[i].getAttribute('event'),
+			    src = TrackingAll[i].childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+			//
+			switch (name) {
+				case 'start':
+					name = '0';break;
+				case 'firstQuartile':
+					name = '25';break;
+				case 'midpoint':
+					name = '50';break;
+				case 'thirdQuartile':
+					name = '75';break;
+				case 'complete':
+					name = '100';break;
+			}
+
+			if (!this.data.statEventAll[name]) this.data.statEventAll[name] = [];
+			this.data.statEventAll[name].push(src);
+		}
+	};
+
+	VAST.prototype._pushMediaFile = function _pushMediaFile(tag) {
+		var mediaFilesTag = tag.querySelector('MediaFiles'),
+		    optimType = 'video/mp4',
+		    optimWidth = 640,
+		    optimFile = false,
+		    delta = false;
+
+		if (!mediaFilesTag) {
+			console.error('uPlayer', 'mediaFilesTag is not define');
+			return false;
+		}
+
+		mediaFilesTag.querySelectorAll('MediaFile').forEach(function (file) {
+			var type = file.getAttribute('type'),
+			    w = file.getAttribute('width');
+
+			if (type == optimType) {
+				var newDelta = Math.abs(w - optimWidth);
+
+				if (!optimFile || newDelta < delta) {
+					optimFile = file;
+					delta = newDelta;
+				}
+			}
+		});
+
+		if (optimFile) {
+			this.data.mediaFile = optimFile.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+			return true;
+		} else {
+			return false;
+		}
+	};
+
+	VAST.prototype._getAdTag = function _getAdTag(path, callback) {
+		var _this3 = this;
+
+		path = path + '&rnd=' + new Date().getTime();
+		console.log('uPlayer', 'loading vast tag ' + path);
+		/* TODO почему то не работает */
+		//if(this.xhr) return; /* на всякий */
+		this.xhr = new XMLHttpRequest();
+		//		this.xhr.withCredentials = true; /* это для теста */
+		this.xhr.open("GET", path, true);
+		this.xhr.onload = function () {
+			//console.log('uPlayer vast tag onload', this.xhr.responseText);
+			var parser = new DOMParser(),
+			    xmlDoc = parser.parseFromString(_this3.xhr.responseText, "text/xml"),
+			    adTag = xmlDoc.querySelector('Ad');
+			//
+			callback(adTag);
+			//this.xhr = false;
+		};
+		this.xhr.timeout = 3000;
+		this.xhr.ontimeout = function () {
+			_this3.xhr.abort();
+			//this.xhr = false;
+			console.log('uPlayer', 'VAST tag грузится более 3 секунд');
+			_this3.param.onError();
+		};
+		this.xhr.onerror = function () {
+			/* например, блокировщик рекламы */
+			//this.xhr = false;
+			_this3.param.onError();
+		};
+		this.xhr.send(null);
+	};
+
+	VAST.prototype._getAdURI = function _getAdURI(tag) {
+		return tag.querySelector('VASTAdTagURI').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+	};
+
+	return VAST;
+})();
+
+exports.VAST = VAST;
+
+},{"../js/scriptonload":9}],6:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
 var YoutubePlayer = (function () {
     function YoutubePlayer(oUPlayer, _onReady) {
         _classCallCheck(this, YoutubePlayer);
@@ -1364,7 +1485,7 @@ var YoutubePlayer = (function () {
 //
 exports.YoutubePlayer = YoutubePlayer;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -1481,7 +1602,7 @@ var event = (function () {
 
 exports.event = event;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1536,7 +1657,7 @@ var scriptRequest = function scriptRequest(url, onSuccess, onError) {
 
 exports.scriptRequest = scriptRequest;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1612,7 +1733,7 @@ var scriptonload = function scriptonload(srcAll, func) {
 };
 exports.scriptonload = scriptonload;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1663,4 +1784,4 @@ exports['default'] = (function (root, doc) {
 ;
 module.exports = exports['default'];
 
-},{"../js/CombinedPlayer":2}]},{},[9]);
+},{"../js/CombinedPlayer":2}]},{},[10]);
