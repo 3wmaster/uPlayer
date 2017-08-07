@@ -164,19 +164,30 @@ var _default = (function () {
 		var self = this;
 		this.muteOn.onclick = function () {
 			self.video.muted = true;
-			localStorage.videoMuted = 'on';
+			try {
+				localStorage.videoMuted = 'on';
+			} catch (e) {
+				//например IOS частный доступ;
+			}
 		};
 		this.muteOff.onclick = function () {
 			self.video.muted = false;
-			localStorage.videoMuted = 'off';
+			try {
+				localStorage.videoMuted = 'off';
+			} catch (e) {
+				//например IOS частный доступ;
+			}
 		};
 
 		this.video.onvolumechange = function () {
 			self.mute.className = self.video.muted === true ? self.mute.className.replace(/\s*htmlPlayer_mute_off/, '') + ' htmlPlayer_mute_off' : self.mute.className.replace(/\s*htmlPlayer_mute_off/, '');
 		};
 
-		if (localStorage.videoMuted === 'on') self.video.muted = true;else self.video.muted = false;
-
+		try {
+			if (localStorage.videoMuted === 'on') self.video.muted = true;else self.video.muted = false;
+		} catch (e) {
+			self.video.muted = true;
+		}
 		this.video.onvolumechange();
 	};
 
@@ -184,15 +195,25 @@ var _default = (function () {
 		var el = this.controls.querySelector('[data-js="volume"]');
 		var self = this;
 
-		if (localStorage.videoVolume !== undefined) {
-			el.setAttribute('data-meter', '{"value": ' + localStorage.videoVolume + '}');
-			self.video.volume = localStorage.videoVolume;
+		try {
+			if (localStorage.videoVolume !== undefined) {
+				el.setAttribute('data-meter', '{"value": ' + localStorage.videoVolume + '}');
+				self.video.volume = localStorage.videoVolume;
+			}
+		} catch (e) {
+			//например IOS частный доступ;
 		}
 
 		var volume = new _jsMeter2['default'](el);
 		volume.callback = function (status, value) {
 			self.video.volume = value;
-			if (status === 'up') localStorage.videoVolume = value;
+			if (status === 'up') {
+				try {
+					localStorage.videoVolume = value;
+				} catch (e) {
+					//например IOS частный доступ;
+				}
+			}
 		};
 	};
 
@@ -249,6 +270,8 @@ var _default = (function () {
 	};
 
 	_default.prototype._addEvents = function _addEvents() {
+		var _this = this;
+
 		var self = this;
 		this.playBtn.onclick = function () {
 			self.video.play();
@@ -271,15 +294,18 @@ var _default = (function () {
 			self._playingCallback.call(self);
 		};
 		this.video.onended = function () {
-			if (!self.isRewind) {
-				self._endCallback.call(self);
+			if (!_this.isRewind) {
+				_this._endCallback();
+
+				// exit fullscreen
+				_this.fullscreenExit.onclick();
 			}
 		};
 		this.video.ontimeupdate = function () {
 			self._timeupdateCallback.call(self);
 		};
 		this.video.onwaiting = function () {
-			console.log('waiting');
+			console.log('uPlayer', 'waiting');
 		};
 	};
 
@@ -378,7 +404,11 @@ var _default = (function () {
 
 	_default.prototype._getQuality = function _getQuality() {
 		if (Object.keys(this.dataQuality).length > 1) {
-			if (localStorage.videoQuality && this.dataQuality[localStorage.videoQuality]) this.quality = localStorage.videoQuality;else if (this.dataQuality.HQ && screen.height > 1079) this.quality = 'HQ';else this.quality = 'LQ';
+			try {
+				if (localStorage.videoQuality && this.dataQuality[localStorage.videoQuality]) this.quality = localStorage.videoQuality;else if (this.dataQuality.HQ && screen.height > 1079) this.quality = 'HQ';else this.quality = 'LQ';
+			} catch (e) {
+				this.quality = 'LQ';
+			}
 		} else this.quality = 'LQ';
 	};
 
@@ -397,7 +427,9 @@ var _default = (function () {
 	_default.prototype._changeQuality = function _changeQuality() {
 		var cls = this.qualityBtn.className.replace(' htmlPlayer_qualityBtn-' + this.quality, '');
 		this.quality = this.quality === 'HQ' ? 'LQ' : 'HQ';
-		localStorage.videoQuality = this.quality;
+		try {
+			localStorage.videoQuality = this.quality;
+		} catch (e) {};
 		this.qualityBtn.className = cls + ' htmlPlayer_qualityBtn-' + this.quality;
 		this.isAutoPlay = true;
 		this._reloadVideo();
@@ -605,7 +637,6 @@ var _default = (function () {
 	function _default(wrapper) {
 		_classCallCheck(this, _default);
 
-		this.console = document.getElementById('console');
 		this._createElements(wrapper);
 		this._addEventsName();
 		this._updateData(JSON.parse(this.wrapper.getAttribute('data-meter')));

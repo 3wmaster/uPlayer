@@ -23,7 +23,7 @@ var VAST = (function () {
 		this.data.clickTrackingAll = []; /* статистика клика по видео */
 		this.data.impressionAll = []; /* src статистика начала проигрывания */
 		this.data.keyFrameAll = [0, 25, 50, 75, 100]; /* ключевые кадры в процентах */
-		this.data.statEventAll = {}; /* соотв им названия, например, при 50% - название midpoint итд */
+		this.data.statEventAll = {}; /* соотв им названия, например, при 50% - название midpoint итд + все остальные */
 		this.xhr = false; /* XMLHttpRequest */
 	};
 
@@ -47,18 +47,27 @@ var VAST = (function () {
 				if (trackingEventsTag) _this._pushTrackingEvents(trackingEventsTag);
 
 				// WrapperAd или нет
+				console.log(adTag.firstElementChild.nodeName);
 				if (adTag.firstElementChild.nodeName === 'Wrapper') {
 					var path = _this._getAdURI(adTag);
 					_this._add(path);
 				} else {
-					/* TODO - здесь будет проверяться VPAID */
+					var advFile = _this._getAdvFile(adTag);
 
-					if (!_this._pushMediaFile(adTag)) {
-						_this.param.onError(); //медиафайл может не подходить (не мп4 VPAID итд)
+					if (!advFile) {
+						console.error('uPlayer', 'Не найдено нужного формата -  mp4 или VPAID');
+						_this.param.onError();
 					} else {
+						_this.data.mediaFile = advFile.file;
+						if (advFile.type == 'mp4') {
 							_this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
-							_this.param.onSuccess(_this.data); /* все получено, всего хватает, можно запускать рекламу */
-						}
+							_this.param.onVast(_this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
+						} else {
+								var AdParameters = adTag.querySelector('AdParameters');
+								_this.data.AdParameters = AdParameters ? AdParameters.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '') : '';
+								_this.param.onVpaid(_this.data); /* все получено, всего хватает, можно запускать рекламу VPAID */
+							}
+					}
 				}
 			}
 		});
@@ -74,7 +83,10 @@ var VAST = (function () {
 	};
 
 	VAST.prototype._pushTrackingEvents = function _pushTrackingEvents(tag) {
-		var TrackingAll = tag.getElementsByTagName('Tracking');
+		var TrackingEvents = tag.querySelector('TrackingEvents'),
+		    TrackingAll = tag.querySelectorAll('Tracking');
+
+		//
 
 		for (var i = 0, j = TrackingAll.length; i < j; i++) {
 			var name = TrackingAll[i].getAttribute('event'),
@@ -98,12 +110,60 @@ var VAST = (function () {
 		}
 	};
 
+	VAST.prototype._getAdvFile = function _getAdvFile(tag) {
+		var mediaFilesTag = tag.querySelector('MediaFiles'),
+		    optimWidth = 640,
+		    optimFile = false,
+		    delta = false,
+		    mediaFile = false;
+
+		if (!mediaFilesTag) {
+			console.error('uPlayer', 'mediaFilesTag is not define');
+			return false;
+		}
+
+		mediaFilesTag.querySelectorAll('MediaFile').forEach(function (file) {
+			var type = file.getAttribute('type'),
+			    apiFramework,
+			    newDelta,
+			    w;
+
+			if (type === 'application/javascript' && file.getAttribute('apiFramework') === 'VPAID') {
+				mediaFile = {};
+				mediaFile.type = 'VPAID';
+				mediaFile.file = file.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+
+				return;
+			} else if (type === 'video/mp4') {
+				w = file.getAttribute('width');
+				newDelta = Math.abs(w - optimWidth);
+
+				if (!optimFile || newDelta < delta) {
+					optimFile = file;
+					delta = newDelta;
+				}
+			}
+		});
+
+		if (optimFile) {
+			mediaFile = {};
+			mediaFile.type = 'mp4';
+			mediaFile.file = optimFile.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+		}
+
+		if (mediaFile) return mediaFile;else return false;
+	};
+
 	VAST.prototype._pushMediaFile = function _pushMediaFile(tag) {
 		var mediaFilesTag = tag.querySelector('MediaFiles'),
 		    optimType = 'video/mp4',
 		    optimWidth = 640,
 		    optimFile = false,
-		    delta = false;
+		    delta = false,
+		    mediaFile = { /*  */
+			'type': null,
+			'src': null
+		};
 
 		if (!mediaFilesTag) {
 			console.error('uPlayer', 'mediaFilesTag is not define');
@@ -125,9 +185,11 @@ var VAST = (function () {
 		});
 
 		if (optimFile) {
+			console.log('uPlayer', 'mp4 файл найден');
 			this.data.mediaFile = optimFile.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 			return true;
 		} else {
+			console.error('uPlayer', 'Не найдено mp4 файла. Скорее всего, VPAID ');
 			return false;
 		}
 	};
@@ -136,14 +198,14 @@ var VAST = (function () {
 		var _this3 = this;
 
 		path = path + '&rnd=' + new Date().getTime();
-		console.log('uPlayer', 'loading vast tag ' + path);
+		console.log('uPlayer', 'loading vast tag ');
 		/* TODO почему то не работает */
 		//if(this.xhr) return; /* на всякий */
 		this.xhr = new XMLHttpRequest();
 		//		this.xhr.withCredentials = true; /* это для теста */
 		this.xhr.open("GET", path, true);
 		this.xhr.onload = function () {
-			//console.log('uPlayer vast tag onload', this.xhr.responseText);
+			console.log('uPlayer', 'tag successfully loaded');
 			var parser = new DOMParser(),
 			    xmlDoc = parser.parseFromString(_this3.xhr.responseText, "text/xml"),
 			    adTag = xmlDoc.querySelector('Ad');

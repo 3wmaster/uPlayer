@@ -1,6 +1,5 @@
 export default class {
 	constructor(wrapper) {
-		this.console = document.getElementById('console');
 		this._createElements(wrapper);
 		this._addEventsName();
 		this._updateData(JSON.parse(this.wrapper.getAttribute('data-meter')));

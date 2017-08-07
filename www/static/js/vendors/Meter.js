@@ -9,7 +9,6 @@ var _default = (function () {
 	function _default(wrapper) {
 		_classCallCheck(this, _default);
 
-		this.console = document.getElementById('console');
 		this._createElements(wrapper);
 		this._addEventsName();
 		this._updateData(JSON.parse(this.wrapper.getAttribute('data-meter')));

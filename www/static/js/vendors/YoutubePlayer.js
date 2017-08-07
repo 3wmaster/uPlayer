@@ -11,10 +11,11 @@ var YoutubePlayer = (function () {
 
         this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="video"]');
         this.insert.innerHTML = '<iframe class="combinedPlayer_youtube" src="' + oUPlayer.data.youtube + '?enablejsapi=1" allowfullscreen="" frameborder="0"></iframe>';
+        this.youtubeIframe = this.insert.firstChild;
         var self = this;
 
         this.oUPlayer = oUPlayer;
-        this.YT = new YT.Player(this.insert.firstChild, {
+        this.YT = new YT.Player(this.youtubeIframe, {
             events: {
                 'onReady': function onReady(event) {
                     _onReady(event);
@@ -27,7 +28,18 @@ var YoutubePlayer = (function () {
     }
 
     YoutubePlayer.prototype._onPlayerStateChange = function _onPlayerStateChange(event) {
-        if (event.data === 0) this.afterEnd();
+        if (event.data === 0) {
+            //конец проигрывания
+            var exit = (function () {
+                if (document.exitFullscreen) return 'exitFullscreen';else if (document.mozCancelFullScreen) return 'mozCancelFullScreen';else if (document.webkitCancelFullScreen) return 'webkitCancelFullScreen';else if (document.msExitFullscreen) return 'msExitFullscreen';
+                return false;
+            })();
+            //выходим из фуллскрина
+            try {
+                document[exit]();
+            } catch (e) {};
+            this.afterEnd();
+        }
     };
 
     YoutubePlayer.prototype.initialize = function initialize() {

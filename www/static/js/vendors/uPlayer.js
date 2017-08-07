@@ -162,16 +162,20 @@ var _default = (function () {
 
 		//this.video.muted = false;
 
-		if (this.userAgent === 'iphone') {
-			this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active advPlayer-before';
-			setTimeout(function () {
-				self.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-				self.video.play();
-			}, 1500);
-		} else {
-			this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-			this.video.play();
-		}
+		/*if( this.userAgent === 'iphone'){
+  	this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active advPlayer-before';
+  	setTimeout(function(){
+  		self.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+  		self.video.play();
+  	}, 1500);
+  }
+  else {
+  	this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+  	this.video.play();
+  }*/
+
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.video.play();
 
 		//this.video.muted = false;
 	};
@@ -183,9 +187,9 @@ var _default = (function () {
 		self._reloadData.call(self, self.data);
 
 		/* оправляем статистику начала проигрывания */
-		var ImpressionAll = this.data.impressionAll;
-		for (var i = 0, j = ImpressionAll.length; i < j; i++) {
-			var src = ImpressionAll[i];
+		var impressionAll = this.data.impressionAll;
+		for (var i = 0, j = impressionAll.length; i < j; i++) {
+			var src = impressionAll[i];
 			var image = document.createElement('IMG');
 
 			//
@@ -237,9 +241,11 @@ var _jsAdvPlayer2 = _interopRequireDefault(_jsAdvPlayer);
 
 var _jsYoutubePlayer = require('../js/YoutubePlayer');
 
+var _jsVpaidPlayer = require('../js/VpaidPlayer');
+
 var _jsScriptonload = require('../js/scriptonload');
 
-var _jsVAST = require('../js/VAST');
+var _jsVASTTag = require('../js/VASTTag');
 
 var CombinedPlayer = (function () {
     function CombinedPlayer(wrapper, param) {
@@ -254,6 +260,7 @@ var CombinedPlayer = (function () {
         this.btn = this.wrapper.querySelector('[data-CombinedPlayer-btn]');
         this.isMobileAgent = this._defineUserAgent();
         this.oAdvPlayer = undefined;
+        this.oVpaidPlayer = undefined;
         this.oHTMLPlayer = undefined;
         this.oYoutubePlayer = undefined;
         this.HTMLDataApi; /* данные Html плеера. будем загружать только один раз и зранить здесь */
@@ -300,7 +307,29 @@ var CombinedPlayer = (function () {
     };
 
     CombinedPlayer.prototype._addEvents = function _addEvents() {
-        var self = this;
+        var self = this,
+            throttle = function throttle(type, name, obj) {
+            obj = obj || window;
+            var running = false;
+            var func = function func() {
+                if (running) {
+                    return;
+                }
+                running = true;
+                requestAnimationFrame(function () {
+                    obj.dispatchEvent(new CustomEvent(name));
+                    running = false;
+                });
+            };
+            obj.addEventListener(type, func);
+        };
+
+        throttle("resize", "optimizedResize");
+
+        // handle event
+        window.addEventListener("optimizedResize", function () {
+            console.log('uPlayer', 'resized');
+        }, true);
 
         _jsEvent.event.add(this.btn, 'click', function (e) {
             e.preventDefault();
@@ -321,13 +350,21 @@ var CombinedPlayer = (function () {
 
             this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
             this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
-        } else if (this.oHTMLPlayer) {
-                this.oHTMLPlayer.start();
-                this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
-            } else {
-                this.oYoutubePlayer.start();
-                this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
-            }
+        } else if (this.oVpaidPlayer && this.isShowAdv) {
+                this.oVpaidPlayer.start();
+
+                /* for IOS */
+                if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
+
+                this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
+                this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
+            } else if (this.oHTMLPlayer) {
+                    this.oHTMLPlayer.start();
+                    this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
+                } else {
+                    this.oYoutubePlayer.start();
+                    this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
+                }
 
         if (this.onActive) this.onActive();
     };
@@ -384,52 +421,66 @@ var CombinedPlayer = (function () {
             };
             _jsScriptonload.scriptonload(['https://www.youtube.com/iframe_api']);
         } else {
-            console.error('uPlayer: onYouTubeIframeAPIReady is already exists');
+            console.log('uPlayer: onYouTubeIframeAPIReady is already exists');
         } /* TODO */
 
         checkLoading();
     };
 
     CombinedPlayer.prototype._getAdvData = function _getAdvData() {
+        var _this = this;
+
         var self = this,
             data = {},
             /* урл, ссылка, статистика итд */
         curTime = new Date().getTime(),
             advInterval = 24,
             url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
-            rnd = new Date().getTime(),
             pathYandexTest = 'https://static.kinoafisha.info/static/html/vast.xml?1=1',
             pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=' + url + '&page-ref=' + url,
-
-        //pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
-        pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?' + 'sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&' + 'impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&' + 'cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
+            pathVastGoogleTest = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
 
         //Можно использовать даже боевой тег, добавив в него параметры- вот так http://data.videonow.ru/?profile_id=695851&format=vast&vpaid=1&flash=0 - отдается наш JS-VPID
-        pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll',
-
-        //path = self.data.adv === 'Google' ? pathGoogle : pathYandex,
-        path = pathVideonow,
-            vastObj = new _jsVAST.VAST({
-            path: path,
-            onSuccess: function onSuccess(data) {
-                console.log('onSuccessGetAdvData', data);
-                self._onSuccessGetAdvData.call(self, data);
-            },
-            onError: function onError() {
-                console.log('Error');
-                _getOur(); /* например, блокировщик рекламы */
-            }
-        }),
+        pathVideonowTest = 'https://data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
+            pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
+            path = (function () {
+            if (_this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
+            if (_this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
+            if (_this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
+            if (_this.data.dev === 'yandex') return pathYandex;
+            return pathYandex;
+        })(),
             _getOur = function _getOur() {
             if (localStorage && !localStorage.isKinoafishaVideoAdv || (curTime - parseFloat(localStorage.isKinoafishaVideoAdv)) / 1000 / 60 / 60 > advInterval) {
-                localStorage.isKinoafishaVideoAdv = curTime;
-                data.mediaFile = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
-                data.clickThrough = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
-                data.ImpressionAll = [];
-                data.statEventAll = {};
-                self._onSuccessGetAdvData.call(self, data);
+                try {
+                    localStorage.isKinoafishaVideoAdv = curTime;
+                    data.mediaFile = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
+                    data.clickThrough = 'https://www.youtube.com/channel/UCNuQyDGBj28VwMRhCy_hTOw';
+                    data.impressionAll = [];
+                    data.statEventAll = {};
+                    data.keyFrameAll = [];
+                    self._onSuccessGetAdvData.call(self, data);
+                } catch (e) {
+                    //например IOS частный доступ
+                    self._checkInitPlayers.call(self);
+                }
             } else self._checkInitPlayers.call(self);
-        };
+        },
+            vastTagObj = new _jsVASTTag.VASTTag({
+            path: path,
+            onVast: function onVast(data) {
+                console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем mp4 плеер');
+                self._onSuccessGetAdvData.call(self, data);
+            },
+            onVpaid: function onVpaid(data) {
+                console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем vpaid плеер');
+                self._onSuccessGetVpaidData.call(self, data);
+            },
+            onError: function onError() {
+                /* например, блокировщик рекламы */
+                _getOur();
+            }
+        });
     };
 
     CombinedPlayer.prototype._onSuccessGetHtmlData = function _onSuccessGetHtmlData(data) {
@@ -440,6 +491,11 @@ var CombinedPlayer = (function () {
             self._returnOriginalView.call(self, 'oHTMLPlayer');
         };
         self._checkInitPlayers.call(self);
+    };
+
+    CombinedPlayer.prototype._onSuccessGetVpaidData = function _onSuccessGetVpaidData(data) {
+        var self = this;
+        this.oVpaidPlayer = new _jsVpaidPlayer.VpaidPlayer(self, data);
     };
 
     CombinedPlayer.prototype._onSuccessGetAdvData = function _onSuccessGetAdvData(data) {
@@ -476,14 +532,15 @@ var CombinedPlayer = (function () {
 
     CombinedPlayer.prototype.abort = function abort() {
         if (this.oAdvPlayer) this.oAdvPlayer.abort();
-
-        if (this.oHTMLPlayer) this.oHTMLPlayer.abort();else this.oYoutubePlayer.abort();
+        if (this.oVpaidPlayer) this.oVpaidPlayer.abort();
+        if (this.oHTMLPlayer) this.oHTMLPlayer.abort();else if (this.oYoutubePlayer) this.oYoutubePlayer.abort(); /* TODO в трейлерах может не быть ни того нитого - в теории такого не должно быть, разобраться */
 
         this._returnOriginalView();
     };
 
     CombinedPlayer.prototype.del = function del() {
         if (this.oAdvPlayer) this.oAdvPlayer.del();
+        if (this.oVpaidPlayer) this.oVpaidPlayer.del();
 
         if (this.oHTMLPlayer) this.oHTMLPlayer.del();else this.oYoutubePlayer.del();
 
@@ -504,7 +561,7 @@ var CombinedPlayer = (function () {
 //
 exports.CombinedPlayer = CombinedPlayer;
 
-},{"../js/AdvPlayer":1,"../js/HTMLPlayer":3,"../js/VAST":5,"../js/YoutubePlayer":6,"../js/event":7,"../js/scriptRequest":8,"../js/scriptonload":9}],3:[function(require,module,exports){
+},{"../js/AdvPlayer":1,"../js/HTMLPlayer":3,"../js/VASTTag":5,"../js/VpaidPlayer":6,"../js/YoutubePlayer":7,"../js/event":8,"../js/scriptRequest":9,"../js/scriptonload":10}],3:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -670,19 +727,30 @@ var _default = (function () {
 		var self = this;
 		this.muteOn.onclick = function () {
 			self.video.muted = true;
-			localStorage.videoMuted = 'on';
+			try {
+				localStorage.videoMuted = 'on';
+			} catch (e) {
+				//например IOS частный доступ;
+			}
 		};
 		this.muteOff.onclick = function () {
 			self.video.muted = false;
-			localStorage.videoMuted = 'off';
+			try {
+				localStorage.videoMuted = 'off';
+			} catch (e) {
+				//например IOS частный доступ;
+			}
 		};
 
 		this.video.onvolumechange = function () {
 			self.mute.className = self.video.muted === true ? self.mute.className.replace(/\s*htmlPlayer_mute_off/, '') + ' htmlPlayer_mute_off' : self.mute.className.replace(/\s*htmlPlayer_mute_off/, '');
 		};
 
-		if (localStorage.videoMuted === 'on') self.video.muted = true;else self.video.muted = false;
-
+		try {
+			if (localStorage.videoMuted === 'on') self.video.muted = true;else self.video.muted = false;
+		} catch (e) {
+			self.video.muted = true;
+		}
 		this.video.onvolumechange();
 	};
 
@@ -690,15 +758,25 @@ var _default = (function () {
 		var el = this.controls.querySelector('[data-js="volume"]');
 		var self = this;
 
-		if (localStorage.videoVolume !== undefined) {
-			el.setAttribute('data-meter', '{"value": ' + localStorage.videoVolume + '}');
-			self.video.volume = localStorage.videoVolume;
+		try {
+			if (localStorage.videoVolume !== undefined) {
+				el.setAttribute('data-meter', '{"value": ' + localStorage.videoVolume + '}');
+				self.video.volume = localStorage.videoVolume;
+			}
+		} catch (e) {
+			//например IOS частный доступ;
 		}
 
 		var volume = new _jsMeter2['default'](el);
 		volume.callback = function (status, value) {
 			self.video.volume = value;
-			if (status === 'up') localStorage.videoVolume = value;
+			if (status === 'up') {
+				try {
+					localStorage.videoVolume = value;
+				} catch (e) {
+					//например IOS частный доступ;
+				}
+			}
 		};
 	};
 
@@ -755,6 +833,8 @@ var _default = (function () {
 	};
 
 	_default.prototype._addEvents = function _addEvents() {
+		var _this = this;
+
 		var self = this;
 		this.playBtn.onclick = function () {
 			self.video.play();
@@ -777,15 +857,18 @@ var _default = (function () {
 			self._playingCallback.call(self);
 		};
 		this.video.onended = function () {
-			if (!self.isRewind) {
-				self._endCallback.call(self);
+			if (!_this.isRewind) {
+				_this._endCallback();
+
+				// exit fullscreen
+				_this.fullscreenExit.onclick();
 			}
 		};
 		this.video.ontimeupdate = function () {
 			self._timeupdateCallback.call(self);
 		};
 		this.video.onwaiting = function () {
-			console.log('waiting');
+			console.log('uPlayer', 'waiting');
 		};
 	};
 
@@ -884,7 +967,11 @@ var _default = (function () {
 
 	_default.prototype._getQuality = function _getQuality() {
 		if (Object.keys(this.dataQuality).length > 1) {
-			if (localStorage.videoQuality && this.dataQuality[localStorage.videoQuality]) this.quality = localStorage.videoQuality;else if (this.dataQuality.HQ && screen.height > 1079) this.quality = 'HQ';else this.quality = 'LQ';
+			try {
+				if (localStorage.videoQuality && this.dataQuality[localStorage.videoQuality]) this.quality = localStorage.videoQuality;else if (this.dataQuality.HQ && screen.height > 1079) this.quality = 'HQ';else this.quality = 'LQ';
+			} catch (e) {
+				this.quality = 'LQ';
+			}
 		} else this.quality = 'LQ';
 	};
 
@@ -903,7 +990,9 @@ var _default = (function () {
 	_default.prototype._changeQuality = function _changeQuality() {
 		var cls = this.qualityBtn.className.replace(' htmlPlayer_qualityBtn-' + this.quality, '');
 		this.quality = this.quality === 'HQ' ? 'LQ' : 'HQ';
-		localStorage.videoQuality = this.quality;
+		try {
+			localStorage.videoQuality = this.quality;
+		} catch (e) {};
 		this.qualityBtn.className = cls + ' htmlPlayer_qualityBtn-' + this.quality;
 		this.isAutoPlay = true;
 		this._reloadVideo();
@@ -1111,7 +1200,6 @@ var _default = (function () {
 	function _default(wrapper) {
 		_classCallCheck(this, _default);
 
-		this.console = document.getElementById('console');
 		this._createElements(wrapper);
 		this._addEventsName();
 		this._updateData(JSON.parse(this.wrapper.getAttribute('data-meter')));
@@ -1260,32 +1348,38 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _jsScriptonload = require('../js/scriptonload');
 
-var VAST = (function () {
-	function VAST(param) {
-		_classCallCheck(this, VAST);
+var VASTTag = (function () {
+	function VASTTag(param) {
+		_classCallCheck(this, VASTTag);
 
 		this.param = param;
 		this._createElements();
 		this._add(this.param.path);
 	}
 
-	VAST.prototype._createElements = function _createElements() {
+	VASTTag.prototype._createElements = function _createElements() {
 		this.data = {}; /* все данные с тега */
-		this.data.mediaFile = undefined; /* ссылка на mp4 файл */
+		this.data.mediaFile = undefined; /* ссылка на медиа файл */
 		this.data.clickThrough = undefined; /* ссылка с видео */
 		this.data.clickTrackingAll = []; /* статистика клика по видео */
 		this.data.impressionAll = []; /* src статистика начала проигрывания */
 		this.data.keyFrameAll = [0, 25, 50, 75, 100]; /* ключевые кадры в процентах */
-		this.data.statEventAll = {}; /* соотв им названия, например, при 50% - название midpoint итд */
+		this.data.statEventAll = {}; /* соотв им названия, например, при 50% - название midpoint итд + все остальные */
 		this.xhr = false; /* XMLHttpRequest */
 	};
 
-	VAST.prototype._add = function _add(path) {
+	VASTTag.prototype._add = function _add(path) {
 		var _this = this;
+
+		if (!path) {
+			console.error('uPlayer', 'тег отсутствует');
+			this.param.onError();
+			return;
+		}
 
 		this._getAdTag(path, function (adTag) {
 			if (!adTag) {
-				console.error('uPlayer', 'пустой тег (яндекс, например) или <nobanner></nobanner>');
+				console.error('uPlayer', 'пустой тег или <nobanner></nobanner>');
 				_this.param.onError();
 			} else {
 				/* может быть как в WrapperAd так и в прямой рекламе */
@@ -1304,31 +1398,40 @@ var VAST = (function () {
 					var path = _this._getAdURI(adTag);
 					_this._add(path);
 				} else {
-					/* TODO - здесь будет проверяться VPAID */
+					var advFile = _this._getAdvFile(adTag);
 
-					if (!_this._pushMediaFile(adTag)) {
-						_this.param.onError(); //медиафайл может не подходить (не мп4 VPAID итд)
+					if (!advFile) {
+						console.error('uPlayer', 'Не найдено нужного формата -  mp4 или VPAID');
+						_this.param.onError();
 					} else {
+						_this.data.mediaFile = advFile.file;
+						if (advFile.type == 'mp4') {
 							_this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
-							_this.param.onSuccess(_this.data); /* все получено, всего хватает, можно запускать рекламу */
-						}
+							_this.param.onVast(_this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
+						} else {
+								var AdParameters = adTag.querySelector('AdParameters');
+								_this.data.AdParameters = AdParameters ? AdParameters.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '') : '';
+								_this.param.onVpaid(_this.data); /* все получено, всего хватает, можно запускать рекламу VPAID */
+							}
+					}
 				}
 			}
 		});
 	};
 
-	VAST.prototype._pushCDATA = function _pushCDATA(tags, key) {
-		var _this2 = this;
-
-		tags.forEach(function (tag) {
+	VASTTag.prototype._pushCDATA = function _pushCDATA(tags, key) {
+		var self = this;
+		Array.prototype.forEach.call(tags, function (tag) {
 			var textNode = tag.childNodes[0];
-			if (textNode) _this2.data[key].push(textNode.wholeText.replace(/^\s+/, '').replace(/\s+$/, ''));
+			if (textNode) self.data[key].push(textNode.wholeText.replace(/^\s+/, '').replace(/\s+$/, ''));
 		});
 	};
 
-	VAST.prototype._pushTrackingEvents = function _pushTrackingEvents(tag) {
-		var TrackingAll = tag.getElementsByTagName('Tracking');
+	VASTTag.prototype._pushTrackingEvents = function _pushTrackingEvents(tag) {
+		var TrackingEvents = tag.querySelector('TrackingEvents'),
+		    TrackingAll = tag.querySelectorAll('Tracking');
 
+		//
 		for (var i = 0, j = TrackingAll.length; i < j; i++) {
 			var name = TrackingAll[i].getAttribute('event'),
 			    src = TrackingAll[i].childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
@@ -1344,6 +1447,8 @@ var VAST = (function () {
 					name = '75';break;
 				case 'complete':
 					name = '100';break;
+				default:
+					name = name;
 			}
 
 			if (!this.data.statEventAll[name]) this.data.statEventAll[name] = [];
@@ -1351,24 +1456,33 @@ var VAST = (function () {
 		}
 	};
 
-	VAST.prototype._pushMediaFile = function _pushMediaFile(tag) {
+	VASTTag.prototype._getAdvFile = function _getAdvFile(tag) {
 		var mediaFilesTag = tag.querySelector('MediaFiles'),
-		    optimType = 'video/mp4',
 		    optimWidth = 640,
 		    optimFile = false,
-		    delta = false;
+		    delta = false,
+		    mediaFile = false;
 
 		if (!mediaFilesTag) {
-			console.error('uPlayer', 'mediaFilesTag is not define');
+			console.error('uPlayer', 'mediaFilesTag не найден');
 			return false;
 		}
 
-		mediaFilesTag.querySelectorAll('MediaFile').forEach(function (file) {
+		Array.prototype.forEach.call(mediaFilesTag.querySelectorAll('MediaFile'), function (file) {
 			var type = file.getAttribute('type'),
-			    w = file.getAttribute('width');
+			    apiFramework,
+			    newDelta,
+			    w;
 
-			if (type == optimType) {
-				var newDelta = Math.abs(w - optimWidth);
+			if (type === 'application/javascript' && file.getAttribute('apiFramework') === 'VPAID') {
+				mediaFile = {};
+				mediaFile.type = 'VPAID';
+				mediaFile.file = file.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+
+				return;
+			} else if (type === 'video/mp4') {
+				w = file.getAttribute('width');
+				newDelta = Math.abs(w - optimWidth);
 
 				if (!optimFile || newDelta < delta) {
 					optimFile = file;
@@ -1378,57 +1492,259 @@ var VAST = (function () {
 		});
 
 		if (optimFile) {
-			this.data.mediaFile = optimFile.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
-			return true;
-		} else {
-			return false;
+			mediaFile = {};
+			mediaFile.type = 'mp4';
+			mediaFile.file = optimFile.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 		}
+
+		if (mediaFile) return mediaFile;else return false;
 	};
 
-	VAST.prototype._getAdTag = function _getAdTag(path, callback) {
-		var _this3 = this;
+	VASTTag.prototype._getAdTag = function _getAdTag(path, callback) {
+		var _this2 = this;
 
+		console.log('get ad tag');
 		path = path + '&rnd=' + new Date().getTime();
-		console.log('uPlayer', 'loading vast tag ' + path);
 		/* TODO почему то не работает */
 		//if(this.xhr) return; /* на всякий */
 		this.xhr = new XMLHttpRequest();
-		//		this.xhr.withCredentials = true; /* это для теста */
+		this.xhr.withCredentials = true;
 		this.xhr.open("GET", path, true);
 		this.xhr.onload = function () {
-			//console.log('uPlayer vast tag onload', this.xhr.responseText);
+			console.log('uPlayer', 'Рекламный тег загружен. Смотрим содержимое...');
 			var parser = new DOMParser(),
-			    xmlDoc = parser.parseFromString(_this3.xhr.responseText, "text/xml"),
+			    xmlDoc = parser.parseFromString(_this2.xhr.responseText, "text/xml"),
 			    adTag = xmlDoc.querySelector('Ad');
 			//
 			callback(adTag);
 			//this.xhr = false;
 		};
-		this.xhr.timeout = 3000;
+		this.xhr.timeout = 5000;
 		this.xhr.ontimeout = function () {
-			_this3.xhr.abort();
+			_this2.xhr.abort();
 			//this.xhr = false;
-			console.log('uPlayer', 'VAST tag грузится более 3 секунд');
-			_this3.param.onError();
+			console.log('uPlayer', 'Рекламный тег грузится более 5 секунд');
+			_this2.param.onError();
 		};
 		this.xhr.onerror = function () {
 			/* например, блокировщик рекламы */
 			//this.xhr = false;
-			_this3.param.onError();
+			_this2.param.onError();
 		};
 		this.xhr.send(null);
 	};
 
-	VAST.prototype._getAdURI = function _getAdURI(tag) {
+	VASTTag.prototype._getAdURI = function _getAdURI(tag) {
 		return tag.querySelector('VASTAdTagURI').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 	};
 
-	return VAST;
+	return VASTTag;
 })();
 
-exports.VAST = VAST;
+exports.VASTTag = VASTTag;
 
-},{"../js/scriptonload":9}],6:[function(require,module,exports){
+},{"../js/scriptonload":10}],6:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var VpaidPlayer = (function () {
+	function VpaidPlayer(oUPlayer, vast) {
+		_classCallCheck(this, VpaidPlayer);
+
+		this._createElements(oUPlayer, vast);
+		this._load();
+	}
+
+	VpaidPlayer.prototype._getHtml = function _getHtml() {
+		return '<div data-js="adv-player" class="advPlayer">' + '<video data-js="adv-video" class="advPlayer_video"></video>' + '<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
+	};
+
+	VpaidPlayer.prototype._createElements = function _createElements(oUPlayer, vast) {
+		this.oUPlayer = oUPlayer;
+		this.vast = vast;
+		this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="adv"]');
+		this.insert.innerHTML = this._getHtml();
+		this.wrapper = this.insert.firstChild;
+		this.video = this.wrapper.querySelector('[data-js="adv-video"]');
+		this.slot = this.wrapper.querySelector('[data-js="vpaid-slot"]');
+		this.vpaid = false;
+		this.isFinish = false;
+		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
+	};
+
+	VpaidPlayer.prototype._load = function _load() {
+		var _this = this;
+
+		this.loadScriptInIFrame(this.vast.mediaFile, function (iframe) {
+			var rect = _this.insert.getBoundingClientRect();
+
+			_this.vpaid = iframe.contentWindow.getVPAIDAd();
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdLoaded (реклама загружена)");
+				_this.isAdLoaded = true;
+				_this.oUPlayer._checkInitPlayers();
+				//vpaid.startAd();
+			}, "AdLoaded");
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdStarted (реклама запущена)");
+				_this._sendStat(_this.vast.statEventAll.creativeView, 'AdStarted');
+			}, "AdStarted");
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdImpression (начало реального просмотра)");
+				_this._sendStat(_this.vast.impressionAll, 'impression');
+			}, "AdImpression");
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdVideoStart (старт рекламного видео)");
+				_this._sendStat(_this.vast.statEventAll['0'], 'start');
+			}, "AdVideoStart");
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdVideoFirstQuartile (просмотрена первая четверть)");
+				_this._sendStat(_this.vast.statEventAll['25'], 'firstQuartile');
+			}, "AdVideoFirstQuartile");
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdVideoMidpoint (просмотрена вторая четверть)");
+				_this._sendStat(_this.vast.statEventAll['50'], 'midpoint');
+			}, "AdVideoMidpoint");
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdVideoThirdQuartile (просмотрена третья четверть)");
+				_this._sendStat(_this.vast.statEventAll['75'], 'thirdQuartile');
+			}, "AdVideoThirdQuartile");
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdVideoComplete (просмотрена четвертая четверть)");
+				_this._sendStat(_this.vast.statEventAll['100'], 'complete');
+			}, "AdVideoComplete");
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdStopped (Показ рекламы окончен)");
+				_this._finish();
+			}, "AdStopped");
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)");
+				_this._sendStat(_this.vast.clickTrackingAll, 'clickTracking');
+			}, "AdClickThru");
+
+			_this.vpaid.subscribe(function () {
+				console.log("VPAID: Реклама пропущена пользователем (AdSkipped)");
+				_this._finish();
+			}, "AdSkipped");
+
+			_this.vpaid.subscribe(function () {
+				console.log("uPlayer: VPAID событие AdUserClose (реклама закрыта пользователем)");
+				_this._finish();
+			}, "AdUserClose");
+
+			_this.vpaid.subscribe(function (data) {
+				console.log("uPlayer: VPAID событие AdError (Ошибка показа рекламы)");
+				_this._finish();
+			}, "AdError");
+
+			_this.vpaid.initAd(rect.width, rect.height, "normal", 0, {
+				AdParameters: _this.vast.AdParameters
+			}, {
+				slot: _this.slot,
+				videoSlot: _this.video,
+				videoSlotCanAutoPlay: false //передавать true или false в зависимости от возможности программного автозапуска для данного элемента video
+			});
+		});
+	};
+
+	VpaidPlayer.prototype.start = function start(data) {
+		/* TODO сейчас данные никакие не передаются, а сохраняются при инициализции плеера. Пока не знаю как лучше будет */
+		var self = this;
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.vpaid.startAd();
+	};
+
+	VpaidPlayer.prototype._finish = function _finish() {
+		//может срабатывать несколько раз, при AdStopped, AdError; TODO - мож покороче как нить..
+		if (this.isFinish) return;
+		this.isFinish = true;
+
+		if (!this.isAdLoaded) {
+			this.oUPlayer._checkInitPlayers();
+			this.del();
+		} else {
+			var oUPlayer = this.oUPlayer;
+
+			if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
+
+			oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
+		}
+	};
+
+	VpaidPlayer.prototype._sendStat = function _sendStat(arr, name) {
+		/* везде сделано по разному, нужно как здесь, наверное  */
+		if (!arr) return;
+		if (typeof arr == 'string') arr = [arr];
+
+		for (var i = 0, j = arr.length; i < j; i++) {
+			var src = arr[i];
+			var image = document.createElement('IMG');
+
+			//
+			image.src = src;
+			image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
+			image.setAttribute('data-stat', name); /* просто для инфо */
+			document.body.appendChild(image);
+		}
+	};
+
+	VpaidPlayer.prototype.loadScriptInIFrame = function loadScriptInIFrame(url, success) {
+		var iframe = document.createElement("iframe");
+		iframe.style.top = "0";
+		iframe.style.position = "absolute";
+		iframe.style.width = "1px";
+		iframe.style.height = "1px";
+		iframe.style.left = "-90000px";
+
+		iframe.onload = function () {
+			iframe.contentWindow.inDapIF = true;
+			var script = document.createElement("script");
+			script.type = "text/javascript";
+			script.onload = function () {
+				success(iframe);
+			};
+			script.onerror = function () {
+				console.log("uPlayer: ошибка загрузки VPAID скрипта)");
+			};
+			iframe.contentWindow.document.body.appendChild(script);
+			script.src = url;
+		};
+
+		//iframe.src = "about:self";
+		iframe.src = "about:blank";
+		document.body.appendChild(iframe);
+	};
+
+	VpaidPlayer.prototype.abort = function abort() {
+		/*if(this.video.paused) return;
+  this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
+  this.video.pause();*/
+	};
+
+	VpaidPlayer.prototype.del = function del() {
+		this.insert.innerHTML = '';
+		this.oUPlayer.oVpaidPlayer = undefined;
+	};
+
+	return VpaidPlayer;
+})();
+
+exports.VpaidPlayer = VpaidPlayer;
+
+},{}],7:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1441,10 +1757,11 @@ var YoutubePlayer = (function () {
 
         this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="video"]');
         this.insert.innerHTML = '<iframe class="combinedPlayer_youtube" src="' + oUPlayer.data.youtube + '?enablejsapi=1" allowfullscreen="" frameborder="0"></iframe>';
+        this.youtubeIframe = this.insert.firstChild;
         var self = this;
 
         this.oUPlayer = oUPlayer;
-        this.YT = new YT.Player(this.insert.firstChild, {
+        this.YT = new YT.Player(this.youtubeIframe, {
             events: {
                 'onReady': function onReady(event) {
                     _onReady(event);
@@ -1457,7 +1774,18 @@ var YoutubePlayer = (function () {
     }
 
     YoutubePlayer.prototype._onPlayerStateChange = function _onPlayerStateChange(event) {
-        if (event.data === 0) this.afterEnd();
+        if (event.data === 0) {
+            //конец проигрывания
+            var exit = (function () {
+                if (document.exitFullscreen) return 'exitFullscreen';else if (document.mozCancelFullScreen) return 'mozCancelFullScreen';else if (document.webkitCancelFullScreen) return 'webkitCancelFullScreen';else if (document.msExitFullscreen) return 'msExitFullscreen';
+                return false;
+            })();
+            //выходим из фуллскрина
+            try {
+                document[exit]();
+            } catch (e) {};
+            this.afterEnd();
+        }
     };
 
     YoutubePlayer.prototype.initialize = function initialize() {
@@ -1485,7 +1813,7 @@ var YoutubePlayer = (function () {
 //
 exports.YoutubePlayer = YoutubePlayer;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -1602,7 +1930,7 @@ var event = (function () {
 
 exports.event = event;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1657,7 +1985,7 @@ var scriptRequest = function scriptRequest(url, onSuccess, onError) {
 
 exports.scriptRequest = scriptRequest;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1733,7 +2061,7 @@ var scriptonload = function scriptonload(srcAll, func) {
 };
 exports.scriptonload = scriptonload;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1784,4 +2112,4 @@ exports['default'] = (function (root, doc) {
 ;
 module.exports = exports['default'];
 
-},{"../js/CombinedPlayer":2}]},{},[10]);
+},{"../js/CombinedPlayer":2}]},{},[11]);

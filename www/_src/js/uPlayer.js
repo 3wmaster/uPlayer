@@ -29,7 +29,7 @@ export default function (root, doc){
 
     uPlayer.isNeedActivation = function(){
         var agentAll = ['ipod','iphone','ipad'],
-            i = 0;
+            i = 0; 
 
         for(i;i< agentAll.length;i++){
             var re = new RegExp(agentAll[i], 'i');

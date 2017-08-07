@@ -1,6 +1,6 @@
 import {scriptonload} from '../js/scriptonload';
 
-class VAST {
+class VASTTag {
 	constructor(param){
 		this.param = param;
 		this._createElements();
@@ -9,19 +9,25 @@ class VAST {
 
 	_createElements(){
 		this.data = {}; /* все данные с тега */
-		this.data.mediaFile = undefined; /* ссылка на mp4 файл */
+		this.data.mediaFile = undefined; /* ссылка на медиа файл */
 		this.data.clickThrough = undefined; /* ссылка с видео */
 		this.data.clickTrackingAll = []; /* статистика клика по видео */
 		this.data.impressionAll = []; /* src статистика начала проигрывания */
 		this.data.keyFrameAll = [0, 25, 50, 75, 100]; /* ключевые кадры в процентах */
-		this.data.statEventAll = {};/* соотв им названия, например, при 50% - название midpoint итд */
+		this.data.statEventAll = {};/* соотв им названия, например, при 50% - название midpoint итд + все остальные */
 		this.xhr = false; /* XMLHttpRequest */
 	}
 
 	_add(path){
+		if(!path){
+			console.error('uPlayer', 'тег отсутствует');
+			this.param.onError();
+			return;
+		}
+
 		this._getAdTag(path, (adTag) => {
 			if(!adTag){
-				console.error('uPlayer', 'пустой тег (яндекс, например) или <nobanner></nobanner>');
+				console.error('uPlayer', 'пустой тег или <nobanner></nobanner>');
 				this.param.onError();
 			}
 			else {
@@ -43,14 +49,23 @@ class VAST {
 					this._add(path);
 				}
 				else {
-					/* TODO - здесь будет проверяться VPAID */
+					var advFile = this._getAdvFile(adTag);
 
-					if(!this._pushMediaFile(adTag)){
-						this.param.onError(); //медиафайл может не подходить (не мп4 VPAID итд)
+					if(!advFile){
+						console.error('uPlayer', 'Не найдено нужного формата -  mp4 или VPAID');
+						this.param.onError();
 					}
 					else {
-						this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
-						this.param.onSuccess(this.data); /* все получено, всего хватает, можно запускать рекламу */
+						this.data.mediaFile = advFile.file;
+						if(advFile.type == 'mp4'){
+							this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+							this.param.onVast(this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
+						}
+						else {
+							var AdParameters = adTag.querySelector('AdParameters');
+							this.data.AdParameters = AdParameters ? AdParameters.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '') : '';
+							this.param.onVpaid(this.data); /* все получено, всего хватает, можно запускать рекламу VPAID */
+						}
 					}
 				}
 			}
@@ -58,15 +73,18 @@ class VAST {
 	}
 
 	_pushCDATA(tags, key){
-		tags.forEach((tag) => {
+		var self = this;
+		Array.prototype.forEach.call (tags, function (tag) {
 			var textNode = tag.childNodes[0];
-			if(textNode) this.data[key].push(textNode.wholeText.replace(/^\s+/, '').replace(/\s+$/, ''));
+			if(textNode) self.data[key].push(textNode.wholeText.replace(/^\s+/, '').replace(/\s+$/, ''));
 		});
 	}
 
 	_pushTrackingEvents(tag){
-		var TrackingAll = tag.getElementsByTagName('Tracking');
+		var TrackingEvents = tag.querySelector('TrackingEvents'),
+			TrackingAll = tag.querySelectorAll('Tracking');
 
+		//
 		for(var i=0,j=TrackingAll.length; i<j; i++){
 			var name = TrackingAll[i].getAttribute('event'),
 				src = TrackingAll[i].childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
@@ -77,6 +95,7 @@ class VAST {
 				case 'midpoint' : name = '50'; break;
 				case 'thirdQuartile' : name = '75'; break;
 				case 'complete' : name = '100'; break;
+				default : name = name;
 			}
 
 			if(!this.data.statEventAll[name]) this.data.statEventAll[name] = [];
@@ -84,25 +103,34 @@ class VAST {
 		}
 	}
 
-	_pushMediaFile(tag){
-		var  mediaFilesTag = tag.querySelector('MediaFiles'),
-			optimType = 'video/mp4',
+	_getAdvFile(tag){
+		var mediaFilesTag = tag.querySelector('MediaFiles'),
 			optimWidth = 640,
 			optimFile = false,
-			delta= false;
-
+			delta= false,
+			mediaFile = false;
 
 		if(!mediaFilesTag){
-			console.error('uPlayer', 'mediaFilesTag is not define');
+			console.error('uPlayer', 'mediaFilesTag не найден');
 			return false;
 		}
 
-		mediaFilesTag.querySelectorAll('MediaFile').forEach((file) => {
+		Array.prototype.forEach.call(mediaFilesTag.querySelectorAll('MediaFile'), (file) => {
 			var type = file.getAttribute('type'),
-				w = file.getAttribute('width');
+			apiFramework,
+			newDelta,
+			w;
 
-			if(type == optimType){
-				var newDelta = Math.abs(w-optimWidth);
+			if((type === 'application/javascript') && (file.getAttribute('apiFramework') === 'VPAID')){
+				mediaFile = {};
+				mediaFile.type = 'VPAID';
+				mediaFile.file = file.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+
+				return;
+			}
+			else if (type === 'video/mp4') {
+				w = file.getAttribute('width');
+				newDelta = Math.abs(w-optimWidth);
 
 				if(!optimFile || (newDelta < delta)){
 					optimFile = file;
@@ -112,24 +140,25 @@ class VAST {
 		});
 
 		if(optimFile) {
-			this.data.mediaFile = optimFile.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
-			return true;
+			mediaFile = {};
+			mediaFile.type = 'mp4';
+			mediaFile.file = optimFile.childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 		}
-		else{
-			return false;
-		}
+
+		if(mediaFile) return mediaFile;
+		else return false;
 	}
 
 	_getAdTag(path, callback){
+		console.log('get ad tag');
 		path = path + '&rnd=' + new Date().getTime();
-		console.log('uPlayer',  'loading vast tag ' + path);
 		/* TODO почему то не работает */
 		//if(this.xhr) return; /* на всякий */
 		this.xhr = new XMLHttpRequest();
-//		this.xhr.withCredentials = true; /* это для теста */
+		this.xhr.withCredentials = true;
 		this.xhr.open("GET", path, true);
 		this.xhr.onload = () => {
-			//console.log('uPlayer vast tag onload', this.xhr.responseText);
+			console.log('uPlayer', 'Рекламный тег загружен. Смотрим содержимое...');
 			var parser = new DOMParser (),
 				xmlDoc = parser.parseFromString (this.xhr.responseText, "text/xml"),
 				adTag = xmlDoc.querySelector('Ad');
@@ -137,11 +166,11 @@ class VAST {
 			callback(adTag);
 			//this.xhr = false;
 		}
-		this.xhr.timeout = 3000;
+		this.xhr.timeout = 5000;
 		this.xhr.ontimeout = () => {
 			this.xhr.abort();
 			//this.xhr = false;
-			console.log('uPlayer', 'VAST tag грузится более 3 секунд');
+			console.log('uPlayer', 'Рекламный тег грузится более 5 секунд');
 			this.param.onError();
 		}
 		this.xhr.onerror = () => { /* например, блокировщик рекламы */
@@ -155,7 +184,7 @@ class VAST {
 		return tag.querySelector('VASTAdTagURI').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 	}
 }
-export {VAST}
+export {VASTTag}
 
 
 

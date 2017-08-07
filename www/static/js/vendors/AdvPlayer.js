@@ -162,16 +162,20 @@ var _default = (function () {
 
 		//this.video.muted = false;
 
-		if (this.userAgent === 'iphone') {
-			this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active advPlayer-before';
-			setTimeout(function () {
-				self.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-				self.video.play();
-			}, 1500);
-		} else {
-			this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-			this.video.play();
-		}
+		/*if( this.userAgent === 'iphone'){
+  	this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active advPlayer-before';
+  	setTimeout(function(){
+  		self.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+  		self.video.play();
+  	}, 1500);
+  }
+  else {
+  	this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+  	this.video.play();
+  }*/
+
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.video.play();
 
 		//this.video.muted = false;
 	};
@@ -183,9 +187,9 @@ var _default = (function () {
 		self._reloadData.call(self, self.data);
 
 		/* оправляем статистику начала проигрывания */
-		var ImpressionAll = this.data.impressionAll;
-		for (var i = 0, j = ImpressionAll.length; i < j; i++) {
-			var src = ImpressionAll[i];
+		var impressionAll = this.data.impressionAll;
+		for (var i = 0, j = impressionAll.length; i < j; i++) {
+			var src = impressionAll[i];
 			var image = document.createElement('IMG');
 
 			//

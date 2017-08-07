@@ -254,37 +254,53 @@ export default class{
 		var self = this;
 		this.muteOn.onclick = function(){
 			self.video.muted = true;
-			localStorage.videoMuted = 'on';
+			try{localStorage.videoMuted = 'on'} catch(e){
+				//например IOS частный доступ;
+			}
 		}
 		this.muteOff.onclick = function(){
 			self.video.muted = false;
-			localStorage.videoMuted = 'off';
+			try{localStorage.videoMuted = 'off'} catch(e){
+				//например IOS частный доступ;
+			}
 		}
 
 		this.video.onvolumechange = function(){
 			self.mute.className = self.video.muted === true ? (self.mute.className.replace(/\s*htmlPlayer_mute_off/, '') + ' htmlPlayer_mute_off') : self.mute.className.replace(/\s*htmlPlayer_mute_off/, '');
 		}
 
-		if (localStorage.videoMuted === 'on') self.video.muted = true;
-		else self.video.muted = false;
-
+		try{
+			if (localStorage.videoMuted === 'on') self.video.muted = true;
+			else self.video.muted = false;
+		} catch(e){
+			self.video.muted = true;
+		}
 		this.video.onvolumechange();
-
 	}
 
 	_initVolume(){
 		var el = this.controls.querySelector('[data-js="volume"]');
 		var self = this;
 
-		if (localStorage.videoVolume !== undefined)  {
-			el.setAttribute('data-meter', '{"value": '+ localStorage.videoVolume +'}' );
-			self.video.volume = localStorage.videoVolume;
+		try{
+			if (localStorage.videoVolume !== undefined)  {
+				el.setAttribute('data-meter', '{"value": '+ localStorage.videoVolume +'}' );
+				self.video.volume = localStorage.videoVolume;
+			}
+		} catch(e){
+			//например IOS частный доступ;
 		}
+
+
 
 		var volume = new Meter(el);
 		volume.callback = function(status, value){
 			self.video.volume = value;
-			if (status === 'up') localStorage.videoVolume = value;
+			if (status === 'up'){
+				try {localStorage.videoVolume = value;} catch(e){
+					//например IOS частный доступ;
+				}
+			}
 		}
 	}
 
@@ -364,16 +380,19 @@ export default class{
 		this.video.onplaying = function (){
 			self._playingCallback.call(self);
 		}
-		this.video.onended = function(){
-			if (!self.isRewind) {
-				self._endCallback.call(self);
+		this.video.onended = () => {
+			if (!this.isRewind) {
+				this._endCallback();
+
+				// exit fullscreen
+				this.fullscreenExit.onclick();
 			}
 		}
 		this.video.ontimeupdate = function (){
 			self._timeupdateCallback.call(self);
 		}
 		this.video.onwaiting = function(){
-			console.log('waiting');
+			console.log('uPlayer', 'waiting');
 		}
 	}
 
@@ -460,9 +479,13 @@ export default class{
 
 	_getQuality(){
 		if (Object.keys(this.dataQuality).length > 1) {
-			if(localStorage.videoQuality && this.dataQuality[localStorage.videoQuality]) this.quality = localStorage.videoQuality;
-			else if (this.dataQuality.HQ && screen.height > 1079) this.quality = 'HQ';
-			else this.quality = 'LQ';
+			try {
+				if(localStorage.videoQuality && this.dataQuality[localStorage.videoQuality]) this.quality = localStorage.videoQuality;
+				else if (this.dataQuality.HQ && screen.height > 1079) this.quality = 'HQ';
+				else this.quality = 'LQ';
+			} catch(e){
+				this.quality = 'LQ';
+			}
 		}
 		else this.quality = 'LQ';
 	}
@@ -483,7 +506,7 @@ export default class{
 	_changeQuality(){
 		var cls = this.qualityBtn.className.replace( ' htmlPlayer_qualityBtn-' + this.quality, '');
 		this.quality = this.quality === 'HQ' ? 'LQ' : 'HQ';
-		localStorage.videoQuality = this.quality;
+		try {localStorage.videoQuality = this.quality} catch(e){};
 		this.qualityBtn.className = cls + ' htmlPlayer_qualityBtn-' + this.quality;
 		this.isAutoPlay = true;
 		this._reloadVideo();

@@ -173,7 +173,7 @@ export default class{
 
         //this.video.muted = false;
 
-		if( this.userAgent === 'iphone'){
+		/*if( this.userAgent === 'iphone'){
 			this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active advPlayer-before';
 			setTimeout(function(){
 				self.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
@@ -183,7 +183,10 @@ export default class{
 		else {
 			this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
 			this.video.play();
-		}
+		}*/
+
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.video.play();
 
         //this.video.muted = false;
 	}
@@ -194,9 +197,9 @@ export default class{
         self._reloadData.call(self, self.data);
 
 		/* оправляем статистику начала проигрывания */
-		var ImpressionAll = this.data.impressionAll;
-		for(var i=0,j=ImpressionAll.length; i<j; i++){
-			var src = ImpressionAll[i];
+		var impressionAll = this.data.impressionAll;
+		for(var i=0,j=impressionAll.length; i<j; i++){
+			var src = impressionAll[i];
 			var image = document.createElement('IMG');
 
 			//

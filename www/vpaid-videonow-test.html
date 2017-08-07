@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html class="no-js ">
+<head>
+    <meta charset="utf-8">
+    <script>
+        (function(){
+            var html = document.documentElement,
+                    cls = html.className;
+
+            //
+            cls = cls.replace(/\s*no-js/, '');
+            html.className = cls;
+        })();
+    </script>
+
+    <title>Плеер</title>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width">
+
+    <link rel="stylesheet" href="/static/css/uPlayer.css" media="all">
+    <script src="/static/js/vendors/uPlayer.js?88"></script>
+</head>
+
+<body>
+    <div style="max-width:640px;margin:0 auto;">
+        <h2>Боевой тег</h2>
+        <p>https://data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=0&flash=0</p>
+        <div id="uPlayer"
+             data-param='{
+                "trailer_id":"9d14ec81b1f60f114b5d17f9dda80e60",
+                "host":"https://www.kinoafisha.info/movies/8163731/",
+                "bottom_vote":"false",
+                "cover":"/static/img/tmp/t97.jpg",
+                "dev":"vpaidVideonowTest"
+
+            }' class="combinedPlayer"></div>
+    </div>
+
+<script>
+    uPlayer(document.getElementById('uPlayer'));
+</script>
+
+</body>
+</html>
+		
+						
