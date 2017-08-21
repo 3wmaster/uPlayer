@@ -22,6 +22,7 @@ var VpaidPlayer =  class {
 		this.vpaid = false;
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
+		this.isAdClickThru = false /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
 	}
 
 	_load(){
@@ -38,7 +39,7 @@ var VpaidPlayer =  class {
 			}, "AdLoaded");
 
 			this.vpaid.subscribe(() => {
-				console.log("uPlayer: VPAID событие AdStarted (реклама запущена)");
+				console.log('uPlayer: VPAID событие AdStarted (реклама запущена)', this.vast.statEventAll.creativeView);
 				this._sendStat(this.vast.statEventAll.creativeView, 'AdStarted');
 			}, "AdStarted");
 
@@ -77,9 +78,14 @@ var VpaidPlayer =  class {
 				this._finish();
 			}, "AdStopped");
 
-			this.vpaid.subscribe(() => {
-				console.log("uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)");
+			this.vpaid.subscribe((url, uid, playerHandles) => {
+				console.log('uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)');
 				this._sendStat(this.vast.clickTrackingAll, 'clickTracking');
+				if(playerHandles){
+					this.isAdClickThru = true;
+					//this._finish(true);
+					window.open(url);
+				}
 			}, "AdClickThru");
 
 			this.vpaid.subscribe(() => {
@@ -113,7 +119,7 @@ var VpaidPlayer =  class {
 		this.vpaid.startAd();
 	}
 
-	_finish(){
+	_finish(){ /* если пользователь щелкнул на рекламу - все останавливаем и дальше не продолжаем*/
 		//может срабатывать несколько раз, при AdStopped, AdError; TODO - мож покороче как нить..
 		if(this.isFinish) return;
 		this.isFinish = true;
@@ -125,10 +131,14 @@ var VpaidPlayer =  class {
 		else {
 			var oUPlayer = this.oUPlayer;
 
-			if(oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();
-			else oUPlayer.oHTMLPlayer.start();
-
-			oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
+			if(this.isAdClickThru) { /* был клик по рекламе */
+				this.oUPlayer._returnOriginalView('oVpaidPlayer');
+			}
+			else {
+				if(oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();
+				else oUPlayer.oHTMLPlayer.start();
+				oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
+			}
 		}
 	}
 
