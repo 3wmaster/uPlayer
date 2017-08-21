@@ -436,18 +436,21 @@ var CombinedPlayer = (function () {
         curTime = new Date().getTime(),
             advInterval = 24,
             url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
-            pathYandexTest = 'https://static.kinoafisha.info/static/html/vast.xml?1=1',
+            pathYandexTest = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=https://kinoafisha.info&page-ref=https://kinoafisha.info',
             pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=' + url + '&page-ref=' + url,
             pathVastGoogleTest = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
 
         //Можно использовать даже боевой тег, добавив в него параметры- вот так http://data.videonow.ru/?profile_id=695851&format=vast&vpaid=1&flash=0 - отдается наш JS-VPID
         pathVideonowTest = 'https://data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
             pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
+            pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=' + curTime,
+            pathGoogleTest = '//ima3vpaid.appspot.com/?adTagUrl=http%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fad_type%3Dvideo%26client%3Dca-video-pub-4968145218643279%26videoad_start_delay%3D0%26description_url%3Dhttp%253A%252F%252Fwww.google.com%26hl%3Den%26max_ad_duration%3D30000%26adtest%3Don&type=js',
             path = (function () {
             if (_this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
             if (_this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
             if (_this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
-            if (_this.data.dev === 'yandex') return pathYandex;
+            if (_this.data.dev === 'yandex') return pathYandexTest;
+            if (_this.data.dev === 'google-test') return pathGoogleTest;
             return pathYandex;
         })(),
             _getOur = function _getOur() {
@@ -496,6 +499,10 @@ var CombinedPlayer = (function () {
     CombinedPlayer.prototype._onSuccessGetVpaidData = function _onSuccessGetVpaidData(data) {
         var self = this;
         this.oVpaidPlayer = new _jsVpaidPlayer.VpaidPlayer(self, data);
+        this.oVpaidPlayer.afterClicking = function () {
+            self.oAdvPlayer.abort();
+            self._returnOriginalView.call(self, 'oAdvPlayer');
+        };
     };
 
     CombinedPlayer.prototype._onSuccessGetAdvData = function _onSuccessGetAdvData(data) {
@@ -1573,6 +1580,7 @@ var VpaidPlayer = (function () {
 		this.vpaid = false;
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
+		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
 	};
 
 	VpaidPlayer.prototype._load = function _load() {
@@ -1591,7 +1599,7 @@ var VpaidPlayer = (function () {
 			}, "AdLoaded");
 
 			_this.vpaid.subscribe(function () {
-				console.log("uPlayer: VPAID событие AdStarted (реклама запущена)");
+				console.log('uPlayer: VPAID событие AdStarted (реклама запущена)', _this.vast.statEventAll.creativeView);
 				_this._sendStat(_this.vast.statEventAll.creativeView, 'AdStarted');
 			}, "AdStarted");
 
@@ -1630,9 +1638,14 @@ var VpaidPlayer = (function () {
 				_this._finish();
 			}, "AdStopped");
 
-			_this.vpaid.subscribe(function () {
-				console.log("uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)");
+			_this.vpaid.subscribe(function (url, uid, playerHandles) {
+				console.log('uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)');
 				_this._sendStat(_this.vast.clickTrackingAll, 'clickTracking');
+				if (playerHandles) {
+					_this.isAdClickThru = true;
+					//this._finish(true);
+					window.open(url);
+				}
 			}, "AdClickThru");
 
 			_this.vpaid.subscribe(function () {
@@ -1668,6 +1681,7 @@ var VpaidPlayer = (function () {
 	};
 
 	VpaidPlayer.prototype._finish = function _finish() {
+		/* если пользователь щелкнул на рекламу - все останавливаем и дальше не продолжаем*/
 		//может срабатывать несколько раз, при AdStopped, AdError; TODO - мож покороче как нить..
 		if (this.isFinish) return;
 		this.isFinish = true;
@@ -1678,9 +1692,13 @@ var VpaidPlayer = (function () {
 		} else {
 			var oUPlayer = this.oUPlayer;
 
-			if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
-
-			oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
+			if (this.isAdClickThru) {
+				/* был клик по рекламе */
+				this.oUPlayer._returnOriginalView('oVpaidPlayer');
+			} else {
+				if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
+				oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
+			}
 		}
 	};
 

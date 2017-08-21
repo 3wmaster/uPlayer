@@ -28,6 +28,7 @@ var VpaidPlayer = (function () {
 		this.vpaid = false;
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
+		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
 	};
 
 	VpaidPlayer.prototype._load = function _load() {
@@ -46,7 +47,7 @@ var VpaidPlayer = (function () {
 			}, "AdLoaded");
 
 			_this.vpaid.subscribe(function () {
-				console.log("uPlayer: VPAID событие AdStarted (реклама запущена)");
+				console.log('uPlayer: VPAID событие AdStarted (реклама запущена)', _this.vast.statEventAll.creativeView);
 				_this._sendStat(_this.vast.statEventAll.creativeView, 'AdStarted');
 			}, "AdStarted");
 
@@ -85,9 +86,14 @@ var VpaidPlayer = (function () {
 				_this._finish();
 			}, "AdStopped");
 
-			_this.vpaid.subscribe(function () {
-				console.log("uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)");
+			_this.vpaid.subscribe(function (url, uid, playerHandles) {
+				console.log('uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)');
 				_this._sendStat(_this.vast.clickTrackingAll, 'clickTracking');
+				if (playerHandles) {
+					_this.isAdClickThru = true;
+					//this._finish(true);
+					window.open(url);
+				}
 			}, "AdClickThru");
 
 			_this.vpaid.subscribe(function () {
@@ -123,6 +129,7 @@ var VpaidPlayer = (function () {
 	};
 
 	VpaidPlayer.prototype._finish = function _finish() {
+		/* если пользователь щелкнул на рекламу - все останавливаем и дальше не продолжаем*/
 		//может срабатывать несколько раз, при AdStopped, AdError; TODO - мож покороче как нить..
 		if (this.isFinish) return;
 		this.isFinish = true;
@@ -133,9 +140,13 @@ var VpaidPlayer = (function () {
 		} else {
 			var oUPlayer = this.oUPlayer;
 
-			if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
-
-			oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
+			if (this.isAdClickThru) {
+				/* был клик по рекламе */
+				this.oUPlayer._returnOriginalView('oVpaidPlayer');
+			} else {
+				if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
+				oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
+			}
 		}
 	};
 
