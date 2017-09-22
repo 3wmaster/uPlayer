@@ -225,12 +225,15 @@ var CombinedPlayer =  class {
             pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
             pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=' + curTime,
             pathGoogleTest = '//ima3vpaid.appspot.com/?adTagUrl=http%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fad_type%3Dvideo%26client%3Dca-video-pub-4968145218643279%26videoad_start_delay%3D0%26description_url%3Dhttp%253A%252F%252Fwww.google.com%26hl%3Den%26max_ad_duration%3D30000%26adtest%3Don&type=js',
+            pathBoosterTest = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&url=' + url,
+
             path = () => {
                 if(this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
                 if(this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
                 if(this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
                 if(this.data.dev === 'yandex') return pathYandexTest;
                 if(this.data.dev === 'google-test') return pathGoogleTest;
+                if(this.data.dev === 'booster') return pathBoosterTest;
                 return pathYandex;
             }(),
             _getOur = function(){

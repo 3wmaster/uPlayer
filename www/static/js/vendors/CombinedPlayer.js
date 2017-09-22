@@ -445,12 +445,14 @@ var CombinedPlayer = (function () {
             pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
             pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=' + curTime,
             pathGoogleTest = '//ima3vpaid.appspot.com/?adTagUrl=http%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fad_type%3Dvideo%26client%3Dca-video-pub-4968145218643279%26videoad_start_delay%3D0%26description_url%3Dhttp%253A%252F%252Fwww.google.com%26hl%3Den%26max_ad_duration%3D30000%26adtest%3Don&type=js',
+            pathBoosterTest = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&url=' + url,
             path = (function () {
             if (_this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
             if (_this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
             if (_this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
             if (_this.data.dev === 'yandex') return pathYandexTest;
             if (_this.data.dev === 'google-test') return pathGoogleTest;
+            if (_this.data.dev === 'booster') return pathBoosterTest;
             return pathYandex;
         })(),
             _getOur = function _getOur() {
@@ -1580,6 +1582,7 @@ var VpaidPlayer = (function () {
 		this.vpaid = false;
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
+		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
 	};
 
 	VpaidPlayer.prototype._load = function _load() {
@@ -1598,7 +1601,7 @@ var VpaidPlayer = (function () {
 			}, "AdLoaded");
 
 			_this.vpaid.subscribe(function () {
-				console.log("uPlayer: VPAID событие AdStarted (реклама запущена)");
+				console.log('uPlayer: VPAID событие AdStarted (реклама запущена)', _this.vast.statEventAll.creativeView);
 				_this._sendStat(_this.vast.statEventAll.creativeView, 'AdStarted');
 			}, "AdStarted");
 
@@ -1638,10 +1641,11 @@ var VpaidPlayer = (function () {
 			}, "AdStopped");
 
 			_this.vpaid.subscribe(function (url, uid, playerHandles) {
-				console.log('uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)', event);
+				console.log('uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)');
 				_this._sendStat(_this.vast.clickTrackingAll, 'clickTracking');
 				if (playerHandles) {
-					_this._afterClicking();
+					_this.isAdClickThru = true;
+					//this._finish(true);
 					window.open(url);
 				}
 			}, "AdClickThru");
@@ -1679,6 +1683,7 @@ var VpaidPlayer = (function () {
 	};
 
 	VpaidPlayer.prototype._finish = function _finish() {
+		/* если пользователь щелкнул на рекламу - все останавливаем и дальше не продолжаем*/
 		//может срабатывать несколько раз, при AdStopped, AdError; TODO - мож покороче как нить..
 		if (this.isFinish) return;
 		this.isFinish = true;
@@ -1688,15 +1693,15 @@ var VpaidPlayer = (function () {
 			this.del();
 		} else {
 			var oUPlayer = this.oUPlayer;
-			if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
-			oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
-		}
-	};
 
-	VpaidPlayer.prototype._afterClicking = function _afterClicking() {
-		try {
-			this.vpaid.stopAd();
-		} catch (e) {};
+			if (this.isAdClickThru) {
+				/* был клик по рекламе */
+				this.oUPlayer._returnOriginalView('oVpaidPlayer');
+			} else {
+				if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
+				oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
+			}
+		}
 	};
 
 	VpaidPlayer.prototype._sendStat = function _sendStat(arr, name) {
