@@ -445,15 +445,27 @@ var CombinedPlayer = (function () {
             pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
             pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=' + curTime,
             pathGoogleTest = '//ima3vpaid.appspot.com/?adTagUrl=http%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fad_type%3Dvideo%26client%3Dca-video-pub-4968145218643279%26videoad_start_delay%3D0%26description_url%3Dhttp%253A%252F%252Fwww.google.com%26hl%3Den%26max_ad_duration%3D30000%26adtest%3Don&type=js',
-            pathBoosterTest = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&url=' + url,
+            pathBoosterTest = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
+            pathBoosterTestPopcorn = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
+            pathBooster = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaUZ6TXNZWUpEQ283UWFTZXpXRG5LU2c9PQ==&autoplay=1&url=' + url,
+            pathMoevideo = '//moevideo.biz/vast&vt=js',
+            pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
+            pathWmg = '//an.facebook.com/v1/instream/vast.xml?placementid=TEST_PLACEMENT_ID&pageurl=http://www.google.com&maxaddurationms=30000',
+            pathes = [pathBooster, pathMoevideo, pathYandex, pathVideonow],
             path = (function () {
             if (_this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
             if (_this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
             if (_this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
             if (_this.data.dev === 'yandex') return pathYandexTest;
             if (_this.data.dev === 'google-test') return pathGoogleTest;
-            if (_this.data.dev === 'booster') return pathBoosterTest;
-            return pathYandex;
+            if (_this.data.dev === 'booster') return pathBooster;
+            if (_this.data.dev === 'booster? -popcorn') return pathBoosterTestPopcorn;
+            if (_this.data.dev === 'moevideo') return pathMoevideo;
+            if (_this.data.dev === 'videonow') return pathVideonow;
+            if (_this.data.dev === 'wmg') return pathWmg;
+
+            //
+            return pathes[Math.floor(Math.random() * pathes.length)];
         })(),
             _getOur = function _getOur() {
             if (localStorage && !localStorage.isKinoafishaVideoAdv || (curTime - parseFloat(localStorage.isKinoafishaVideoAdv)) / 1000 / 60 / 60 > advInterval) {
@@ -1591,6 +1603,7 @@ var VpaidPlayer = (function () {
 		this.loadScriptInIFrame(this.vast.mediaFile, function (iframe) {
 			var rect = _this.insert.getBoundingClientRect();
 
+			console.log(iframe.contentWindow);
 			_this.vpaid = iframe.contentWindow.getVPAIDAd();
 
 			_this.vpaid.subscribe(function () {

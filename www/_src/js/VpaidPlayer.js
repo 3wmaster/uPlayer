@@ -168,7 +168,7 @@ var VpaidPlayer =  class {
 
 		iframe.onload = function()
 		{
-			iframe.contentWindow.inDapIF = true; 
+			//iframe.contentWindow.inDapIF = true; TODO wmg
 			var script = document.createElement("script");
 			script.type = "text/javascript";
 			script.onload = function() {
