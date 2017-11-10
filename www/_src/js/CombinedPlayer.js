@@ -29,18 +29,15 @@ var CombinedPlayer =  class {
     _initPlayers(){
         var self = this;
 
-        if(this.isShowAdv)  this._getAdvData();
-        else this.countPLayers++;
-
         if (this.data.youtube) this._getYoutubeData();
-        else this._getHtmlData();
+        else this._getHtmlData(); /* TODO теперь не нужно - данные сразу в разметку теперь вставляются */
     }
 
     _checkInitPlayers(){
         this.countPLayers++;
-        if(this.countPLayers === 2){
+        if(1===1){ /* TODO */
             // Все плееры инициализированы. Можно показывать обложку и, при необходимости, сразу запускать
-            if(this.data.autoplay && !uPlayer.isNeedActivation) this._start();
+            if(this.data.autoplay && !uPlayer.isNeedActivation) this._getAdvData();
             this.wrapper.className = this.wrapper.className + ' js-ready';
         }
     }
@@ -117,7 +114,7 @@ var CombinedPlayer =  class {
 
         event.add(this.btn, 'click', function(e){
             e.preventDefault();
-            self._start.call(self);
+            self._getAdvData.call(self);
         });
 	}
 
@@ -126,31 +123,33 @@ var CombinedPlayer =  class {
 
         this._sendStat('');
 
-        if(this.oAdvPlayer && this.isShowAdv) {
+        if(this.oAdvPlayer && this.isShowAdv) { /* TODO избавиться от isShowAdv Нужно удалять oAdvPlayer */
             this.oAdvPlayer.start();
 
             /* for IOS */
             if(this.oYoutubePlayer) this.oYoutubePlayer.initialize();
             else this.oHTMLPlayer.initialize();
 
-            this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
-            this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
+            //this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
+            this.isShowAdv = false;  //если один раз показали - больше в этом плеере не показываем, без разницы какая реклама
         }
-        else if(this.oVpaidPlayer && this.isShowAdv){
+        else if(this.oVpaidPlayer && this.isShowAdv){ /* TODO избавиться от isShowAdv Нужно удалять oVpaidPlayer */
             this.oVpaidPlayer.start();
 
             /* for IOS */
             if(this.oYoutubePlayer) this.oYoutubePlayer.initialize();
             else this.oHTMLPlayer.initialize();
 
-            this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
+            //this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
             this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
         }
         else if(this.oHTMLPlayer) {
+            this.wrapper.className = this.wrapper.className.replace(' js-active js-active-adv', ''); /* TODO переделать на общий прелоадер */
             this.oHTMLPlayer.start();
             this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
         }
         else{
+            this.wrapper.className = this.wrapper.className.replace(' js-active js-active-adv', ''); /* TODO переделать на общий прелоадер */
             this.oYoutubePlayer.start();
             this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
         }
@@ -173,19 +172,32 @@ var CombinedPlayer =  class {
         document.body.appendChild(image);
     }
 
-    _getHtmlData(){
-        var self = this,
+    _getHtmlData(){ /* TODO - теперь ничего не получаем, данные в  */
+
+        var self = this;
+
+        self.oHTMLPlayer = new HTMLPlayer(self, self.data);
+        self.oHTMLPlayer.afterEnd = function(){
+            self._returnOriginalView.call(self, 'oHTMLPlayer');
+        }
+        self._checkInitPlayers.call(self);
+
+
+
+
+
+        /*var self = this,
             path = this.data.isDev ? 'kinoafishaspb.ru' : 'kinoafisha.info',
             _onSuccess = function(dataApi){
                 self._onSuccessGetHtmlData.call(self, dataApi);
             },
             _onError = function(){};
 
-        //
+
         if(this.HTMLDataApi) _onSuccess(this.HTMLDataApi);
         else {
             scriptRequest('//api.'+ path +'/player/info/' + this.data.trailer_id + '/', function(dataApi){_onSuccess(dataApi)}, function(){_onError()});
-        }
+        }*/
     }
 
     _getYoutubeData(){
@@ -212,6 +224,15 @@ var CombinedPlayer =  class {
     }
 
     _getAdvData(){
+
+        if(!this.isShowAdv){
+            this._start();
+            return;
+        }
+
+        this.wrapper.className = this.wrapper.className + ' js-active js-active-adv'; /* TODO переделать на общий прелоадер */
+
+
         var self = this,
             data = {}, /* урл, ссылка, статистика итд */
             curTime = new Date().getTime(),
@@ -235,6 +256,9 @@ var CombinedPlayer =  class {
             pathes = [pathBooster, pathMoevideo, pathYandex, pathVideonow],
 
             path = () => {
+
+                return 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=';
+
                 if(this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
                 if(this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
                 if(this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
@@ -261,10 +285,10 @@ var CombinedPlayer =  class {
                         self._onSuccessGetAdvData.call(self, data);
                     } catch(e){
                         //например IOS частный доступ
-                        self._checkInitPlayers.call(self);
+                        self._start.call(self);
                     }
                 }
-                else self._checkInitPlayers.call(self);
+                else self._start.call(self);
             },
             vastTagObj = new VASTTag({
                 path: path,
@@ -282,7 +306,8 @@ var CombinedPlayer =  class {
             });
     }
 
-    _onSuccessGetHtmlData(data){
+    /* больше не запрашиваем данные */
+    /*_onSuccessGetHtmlData(data){
         var self = this;
 
         self.oHTMLPlayer = new HTMLPlayer(self, data);
@@ -290,15 +315,11 @@ var CombinedPlayer =  class {
             self._returnOriginalView.call(self, 'oHTMLPlayer');
         }
         self._checkInitPlayers.call(self);
-    }
+    }*/
 
     _onSuccessGetVpaidData(data){
         var self = this;
         this.oVpaidPlayer = new VpaidPlayer(self, data);
-        this.oVpaidPlayer.afterClicking = () => {
-            self.oAdvPlayer.abort();
-            self._returnOriginalView.call(self, 'oAdvPlayer');
-        }
     }
 
     _onSuccessGetAdvData(data){
@@ -320,14 +341,14 @@ var CombinedPlayer =  class {
             self.oAdvPlayer.abort();
             self._returnOriginalView.call(self, 'oAdvPlayer');
         }
-        self._checkInitPlayers.call(self);
+        self._start.call(self);
     }
 
     _onSuccessGetYoutubeData(){
         var self = this;
         var onReady = function(event){
             self._checkInitPlayers.call(self);
-        }
+       }
 
 
         self.oYoutubePlayer = new YoutubePlayer(self, onReady);
@@ -354,7 +375,7 @@ var CombinedPlayer =  class {
 
         this.wrapper.className = this.wrapper.className.replace(/ js-active(-video|-adv)*/g, '');
         this.wrapper.innerHTML = '';
-;
+
         delete uPlayer.all[this.name];
     }
 

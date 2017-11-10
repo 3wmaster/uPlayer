@@ -29,12 +29,19 @@ var VpaidPlayer =  class {
 		this.loadScriptInIFrame(this.vast.mediaFile, (iframe) => {
 			var rect = this.insert.getBoundingClientRect();
 
+			if(!iframe.contentWindow.getVPAIDAd){ /* связано с загрузкой ифрейм и переменной inDapIF */
+				console.error('iframe.contentWindow.getVPAIDAd отсутствует');
+				this.del();
+				this.oUPlayer._start();
+				return;
+			}
+
 			this.vpaid = iframe.contentWindow.getVPAIDAd();
 
 			this.vpaid.subscribe(() => {
 				console.log("uPlayer: VPAID событие AdLoaded (реклама загружена)");
 				this.isAdLoaded = true;
-				this.oUPlayer._checkInitPlayers();
+				this.oUPlayer._start();
 				//vpaid.startAd();
 			}, "AdLoaded");
 
@@ -125,13 +132,13 @@ var VpaidPlayer =  class {
 		this.isFinish = true;
 
 		if(!this.isAdLoaded){
-			this.oUPlayer._checkInitPlayers();
 			this.del();
+			this.oUPlayer._start();
 		}
 		else {
 			var oUPlayer = this.oUPlayer;
 
-			if(this.isAdClickThru) { /* был клик по рекламе */
+			if(this.isAdClickThru) { /* был клик по рекламе, видео не запускаем, пользователь может смотреть рекламу */
 				this.oUPlayer._returnOriginalView('oVpaidPlayer');
 			}
 			else {
@@ -168,7 +175,8 @@ var VpaidPlayer =  class {
 
 		iframe.onload = function()
 		{
-			//iframe.contentWindow.inDapIF = true; TODO wmg
+			//TODO wmg
+			iframe.contentWindow.inDapIF = true;
 			var script = document.createElement("script");
 			script.type = "text/javascript";
 			script.onload = function() {
