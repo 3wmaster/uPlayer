@@ -10,11 +10,12 @@ var VpaidPlayer = (function () {
 		_classCallCheck(this, VpaidPlayer);
 
 		this._createElements(oUPlayer, vast);
+		this._insertVideoTag();
 		this._load();
 	}
 
 	VpaidPlayer.prototype._getHtml = function _getHtml() {
-		return '<div data-js="adv-player" class="advPlayer">' + '<video data-js="adv-video" class="advPlayer_video"></video>' + '<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
+		return '<div data-js="adv-player" class="advPlayer">' + '<div data-js="vpaid-slot" style="position:absolute;z-index:2;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
 	};
 
 	VpaidPlayer.prototype._createElements = function _createElements(oUPlayer, vast) {
@@ -23,12 +24,18 @@ var VpaidPlayer = (function () {
 		this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="adv"]');
 		this.insert.innerHTML = this._getHtml();
 		this.wrapper = this.insert.firstChild;
-		this.video = this.wrapper.querySelector('[data-js="adv-video"]');
+		this.video = oUPlayer.initVideo;
 		this.slot = this.wrapper.querySelector('[data-js="vpaid-slot"]');
 		this.vpaid = false;
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
 		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
+	};
+
+	VpaidPlayer.prototype._insertVideoTag = function _insertVideoTag() {
+		this.video.removeAttribute('style');
+		this.video.className = 'advPlayer_video';
+		this.wrapper.insertBefore(this.video, this.slot);
 	};
 
 	VpaidPlayer.prototype._load = function _load() {

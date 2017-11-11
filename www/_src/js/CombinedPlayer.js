@@ -22,6 +22,7 @@ var CombinedPlayer =  class {
         this.oHTMLPlayer = undefined;
         this.oYoutubePlayer = undefined;
         this.HTMLDataApi; /* данные Html плеера. будем загружать только один раз и зранить здесь */
+        this.initVideo; /* тег видео, который будем инициализировать при клике и вставлять в нужное место. Нужно для IOS */
         this._initPlayers();
 		this._addEvents();
 	}
@@ -114,12 +115,24 @@ var CombinedPlayer =  class {
 
         event.add(this.btn, 'click', function(e){
             e.preventDefault();
+            self._initializeVideoTag.call(self);
             self._getAdvData.call(self);
         });
 	}
 
+    _initializeVideoTag(){
+        var initVideo = document.createElement('video');
+        initVideo.style.cssText = 'visibility:hidden; position:absolute; left: -9999px; top: -9999px; width:1px; height:1px; overflow:hidden;';
+        document.body.appendChild(initVideo);
+        initVideo.load();
+        this.initVideo = initVideo;
+    }
+
     _start(){
         uPlayer.abortAll(this);
+
+        if(this.oYoutubePlayer) this.oYoutubePlayer.initialize();
+        else this.oHTMLPlayer.initialize();
 
         this._sendStat('');
 
@@ -256,8 +269,6 @@ var CombinedPlayer =  class {
             pathes = [pathBooster, pathMoevideo, pathYandex, pathVideonow],
 
             path = () => {
-
-                return 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=';
 
                 if(this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
                 if(this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;

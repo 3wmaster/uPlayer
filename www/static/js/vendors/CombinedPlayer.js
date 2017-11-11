@@ -15,7 +15,7 @@ var _default = (function () {
 	}
 
 	_default.prototype._getHtml = function _getHtml() {
-		return '<div data-js="adv-player" class="advPlayer">' + '<video data-js="adv-video" class="advPlayer_video"></video>' + '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank"></a>' + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
+		return '<div data-js="adv-player" class="advPlayer">' + '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank"></a>' + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
 	};
 
 	_default.prototype._createElements = function _createElements(oUPlayer, data) {
@@ -25,7 +25,7 @@ var _default = (function () {
 		this.insert.innerHTML = this._getHtml();
 		this.wrapper = this.insert.firstChild;
 		this.param = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
-		this.video = this.wrapper.querySelector('[data-js="adv-video"]');
+		this.video = oUPlayer.initVideo;
 		this.clickingBtn = this.wrapper.querySelector('[data-js="adv-clicking-btn"]');
 		this.skipBtn = this.wrapper.querySelector('[data-js="adv-skip-btn"]');
 		this.advLeft = this.wrapper.querySelector('[data-js="adv-left"]');
@@ -33,6 +33,12 @@ var _default = (function () {
 		this.userAgent = this._defineUserAgent();
 		this.keyFrameAll = []; //массив времени в %  когда отпраляется стата - 0% 25% 50% 75% 100%
 		this.statEventAll = {}; //все типы событий по которым отправляется стата, ключ - src
+	};
+
+	_default.prototype._insertVideoTag = function _insertVideoTag() {
+		this.video.removeAttribute('style');
+		this.video.className = 'advPlayer_video';
+		this.wrapper.insertBefore(this.video, this.clickingBtn);
 	};
 
 	_default.prototype._defineUserAgent = function _defineUserAgent() {
@@ -264,6 +270,7 @@ var CombinedPlayer = (function () {
         this.oHTMLPlayer = undefined;
         this.oYoutubePlayer = undefined;
         this.HTMLDataApi; /* данные Html плеера. будем загружать только один раз и зранить здесь */
+        this.initVideo; /* тег видео, который будем инициализировать при клике и вставлять в нужное место. Нужно для IOS */
         this._initPlayers();
         this._addEvents();
     }
@@ -332,12 +339,23 @@ var CombinedPlayer = (function () {
 
         _jsEvent.event.add(this.btn, 'click', function (e) {
             e.preventDefault();
+            self._initializeVideoTag.call(self);
             self._getAdvData.call(self);
         });
     };
 
+    CombinedPlayer.prototype._initializeVideoTag = function _initializeVideoTag() {
+        var initVideo = document.createElement('video');
+        initVideo.style.cssText = 'visibility:hidden; position:absolute; left: -9999px; top: -9999px; width:1px; height:1px; overflow:hidden;';
+        document.body.appendChild(initVideo);
+        initVideo.load();
+        this.initVideo = initVideo;
+    };
+
     CombinedPlayer.prototype._start = function _start() {
         uPlayer.abortAll(this);
+
+        if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
 
         this._sendStat('');
 
@@ -468,8 +486,6 @@ var CombinedPlayer = (function () {
             pathWmg = '//an.facebook.com/v1/instream/vast.xml?placementid=TEST_PLACEMENT_ID&pageurl=http://www.google.com&maxaddurationms=30000',
             pathes = [pathBooster, pathMoevideo, pathYandex, pathVideonow],
             path = (function () {
-
-            return 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=';
 
             if (_this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
             if (_this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
@@ -1590,11 +1606,12 @@ var VpaidPlayer = (function () {
 		_classCallCheck(this, VpaidPlayer);
 
 		this._createElements(oUPlayer, vast);
+		this._insertVideoTag();
 		this._load();
 	}
 
 	VpaidPlayer.prototype._getHtml = function _getHtml() {
-		return '<div data-js="adv-player" class="advPlayer">' + '<video data-js="adv-video" class="advPlayer_video"></video>' + '<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
+		return '<div data-js="adv-player" class="advPlayer">' + '<div data-js="vpaid-slot" style="position:absolute;z-index:2;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
 	};
 
 	VpaidPlayer.prototype._createElements = function _createElements(oUPlayer, vast) {
@@ -1603,12 +1620,18 @@ var VpaidPlayer = (function () {
 		this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="adv"]');
 		this.insert.innerHTML = this._getHtml();
 		this.wrapper = this.insert.firstChild;
-		this.video = this.wrapper.querySelector('[data-js="adv-video"]');
+		this.video = oUPlayer.initVideo;
 		this.slot = this.wrapper.querySelector('[data-js="vpaid-slot"]');
 		this.vpaid = false;
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
 		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
+	};
+
+	VpaidPlayer.prototype._insertVideoTag = function _insertVideoTag() {
+		this.video.removeAttribute('style');
+		this.video.className = 'advPlayer_video';
+		this.wrapper.insertBefore(this.video, this.slot);
 	};
 
 	VpaidPlayer.prototype._load = function _load() {

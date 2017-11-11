@@ -8,7 +8,6 @@ export default class{
 
     _getHtml(){
         return  '<div data-js="adv-player" class="advPlayer">'+
-                    '<video data-js="adv-video" class="advPlayer_video"></video>'+
                     '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank"></a>'+
                     '<div class="advPlayer_controls">'+
                         '<div class="advPlayer_controlsCell">'+
@@ -34,7 +33,7 @@ export default class{
         this.insert.innerHTML = this._getHtml();
         this.wrapper = this.insert.firstChild;
         this.param = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
-		this.video = this.wrapper.querySelector('[data-js="adv-video"]');
+		this.video = oUPlayer.initVideo;
 		this.clickingBtn = this.wrapper.querySelector('[data-js="adv-clicking-btn"]');
 		this.skipBtn = this.wrapper.querySelector('[data-js="adv-skip-btn"]');
 		this.advLeft = this.wrapper.querySelector('[data-js="adv-left"]');
@@ -42,6 +41,12 @@ export default class{
 		this.userAgent = this._defineUserAgent();
         this.keyFrameAll = []; //массив времени в %  когда отпраляется стата - 0% 25% 50% 75% 100%
         this.statEventAll = {}; //все типы событий по которым отправляется стата, ключ - src
+	}
+
+	_insertVideoTag(){
+		this.video.removeAttribute('style');
+		this.video.className = 'advPlayer_video';
+		this.wrapper.insertBefore(this.video, this.clickingBtn);
 	}
 
 	_defineUserAgent(){
