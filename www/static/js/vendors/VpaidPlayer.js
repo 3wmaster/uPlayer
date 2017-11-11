@@ -150,8 +150,8 @@ var VpaidPlayer = (function () {
 		this.isFinish = true;
 
 		if (!this.isAdLoaded) {
-			this.del();
 			this.oUPlayer._start();
+			this.del();
 		} else {
 			var oUPlayer = this.oUPlayer;
 
