@@ -176,21 +176,7 @@ export default class{
 	_ready(){
 		var self = this;
 
-        //this.video.muted = false;
-
-		/*if( this.userAgent === 'iphone'){
-			this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active advPlayer-before';
-			setTimeout(function(){
-				self.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-				self.video.play();
-			}, 1500);
-		}
-		else {
-			this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-			this.video.play();
-		}*/
-
-		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active'; /* TODO */
 		this.video.play();
 
         //this.video.muted = false;

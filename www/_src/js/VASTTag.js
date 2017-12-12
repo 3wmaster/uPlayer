@@ -1,5 +1,3 @@
-import {scriptonload} from '../js/scriptonload';
-
 class VASTTag {
 	constructor(param){
 		this.param = param;

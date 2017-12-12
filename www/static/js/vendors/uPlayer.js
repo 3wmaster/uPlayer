@@ -166,21 +166,7 @@ var _default = (function () {
 	_default.prototype._ready = function _ready() {
 		var self = this;
 
-		//this.video.muted = false;
-
-		/*if( this.userAgent === 'iphone'){
-  	this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active advPlayer-before';
-  	setTimeout(function(){
-  		self.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-  		self.video.play();
-  	}, 1500);
-  }
-  else {
-  	this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-  	this.video.play();
-  }*/
-
-		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active'; /* TODO */
 		this.video.play();
 
 		//this.video.muted = false;
@@ -253,6 +239,8 @@ var _jsScriptonload = require('../js/scriptonload');
 
 var _jsVASTTag = require('../js/VASTTag');
 
+var _jsIMA = require('../js/IMA');
+
 var CombinedPlayer = (function () {
     function CombinedPlayer(wrapper, param) {
         _classCallCheck(this, CombinedPlayer);
@@ -285,6 +273,7 @@ var CombinedPlayer = (function () {
         this.countPLayers++;
         if (1 === 1) {
             /* TODO */
+
             // Все плееры инициализированы. Можно показывать обложку и, при необходимости, сразу запускать
             if (this.data.autoplay && !uPlayer.isNeedActivation) this._getAdvData();
             this.wrapper.className = this.wrapper.className + ' js-ready';
@@ -339,8 +328,13 @@ var CombinedPlayer = (function () {
 
         _jsEvent.event.add(this.btn, 'click', function (e) {
             e.preventDefault();
-            self._initializeVideoTag.call(self);
-            self._getAdvData.call(self);
+
+            if (self.isShowAdv) {
+                self._initializeVideoTag.call(self);
+                self._getAdvData.call(self);
+            } else {
+                self._start.call(self);
+            }
         });
     };
 
@@ -350,12 +344,13 @@ var CombinedPlayer = (function () {
         document.body.appendChild(initVideo);
         initVideo.load();
         this.initVideo = initVideo;
+
+        /* for IOS */
+        if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
     };
 
     CombinedPlayer.prototype._start = function _start() {
         uPlayer.abortAll(this);
-
-        if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
 
         this._sendStat('');
 
@@ -363,17 +358,11 @@ var CombinedPlayer = (function () {
             /* TODO избавиться от isShowAdv Нужно удалять oAdvPlayer */
             this.oAdvPlayer.start();
 
-            /* for IOS */
-            if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
-
             //this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
             this.isShowAdv = false; //если один раз показали - больше в этом плеере не показываем, без разницы какая реклама
         } else if (this.oVpaidPlayer && this.isShowAdv) {
                 /* TODO избавиться от isShowAdv Нужно удалять oVpaidPlayer */
                 this.oVpaidPlayer.start();
-
-                /* for IOS */
-                if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
 
                 //this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
                 this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
@@ -484,7 +473,8 @@ var CombinedPlayer = (function () {
             pathMoevideo = '//moevideo.biz/vast&vt=js',
             pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
             pathWmg = '//an.facebook.com/v1/instream/vast.xml?placementid=TEST_PLACEMENT_ID&pageurl=http://www.google.com&maxaddurationms=30000',
-            pathes = [pathBooster, pathMoevideo, pathYandex, pathVideonow],
+            pathOptAd360 = '//ima3vpaid.appspot.com/?adTagUrl=https%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fclient%3Dca-video-pub-5512390705137507%26slotname%3D9018911080%2F8793747051%26ad_type%3Dvideo%26description_url%3Dhttp%253A%252F%252Fkinoafisha.info%26max_ad_duration%3D60000%26videoad_start_delay%3D0%26type%3Djs&type=js',
+            pathes = [pathVideonow, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex],
             path = (function () {
 
             if (_this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
@@ -497,12 +487,15 @@ var CombinedPlayer = (function () {
             if (_this.data.dev === 'moevideo') return pathMoevideo;
             if (_this.data.dev === 'videonow') return pathVideonow;
             if (_this.data.dev === 'wmg') return pathWmg;
+            if (_this.data.dev === 'optAd360') return pathOptAd360;
 
             //
             return pathes[Math.floor(Math.random() * pathes.length)];
         })(),
             _getOur = function _getOur() {
-            if (localStorage && !localStorage.isKinoafishaVideoAdv || (curTime - parseFloat(localStorage.isKinoafishaVideoAdv)) / 1000 / 60 / 60 > advInterval) {
+            /* TODO пока отключил, чет не работает */
+            self._start.call(self);
+            /*if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
                 try {
                     localStorage.isKinoafishaVideoAdv = curTime;
                     data.mediaFile = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
@@ -511,27 +504,41 @@ var CombinedPlayer = (function () {
                     data.statEventAll = {};
                     data.keyFrameAll = [];
                     self._onSuccessGetAdvData.call(self, data);
-                } catch (e) {
-                    //например IOS частный доступ
+                } catch(e){
                     self._start.call(self);
                 }
-            } else self._start.call(self);
-        },
-            vastTagObj = new _jsVASTTag.VASTTag({
-            path: path,
-            onVast: function onVast(data) {
-                console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем mp4 плеер');
-                self._onSuccessGetAdvData.call(self, data);
-            },
-            onVpaid: function onVpaid(data) {
-                console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем vpaid плеер');
-                self._onSuccessGetVpaidData.call(self, data);
-            },
-            onError: function onError() {
-                /* например, блокировщик рекламы */
-                _getOur();
             }
-        });
+            else self._start.call(self);*/
+        };
+
+        //
+        if (1 == 2) {
+
+            new _jsIMA.IMA({
+                oUPlayer: this,
+                path: path,
+                onError: function onError() {
+                    /* например, блокировщик рекламы */
+                    _getOur();
+                }
+            });
+        } else {
+            new _jsVASTTag.VASTTag({
+                path: path,
+                onVast: function onVast(data) {
+                    console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем mp4 плеер');
+                    self._onSuccessGetAdvData.call(self, data);
+                },
+                onVpaid: function onVpaid(data) {
+                    console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем vpaid плеер');
+                    self._onSuccessGetVpaidData.call(self, data);
+                },
+                onError: function onError() {
+                    /* например, блокировщик рекламы */
+                    _getOur();
+                }
+            });
+        }
     };
 
     /* больше не запрашиваем данные */
@@ -581,6 +588,14 @@ var CombinedPlayer = (function () {
         };
     };
 
+    CombinedPlayer.prototype.onAdsCompleted = function onAdsCompleted() {
+        /* TODO - сделать всю рекламу так */
+        if (this.oYoutubePlayer) this.oYoutubePlayer.start();else this.oHTMLPlayer.start();
+
+        this.isShowAdv = false; /* TODO ??  */
+        this.wrapper.className = this.wrapper.className.replace(' js-active-adv', ' js-active-video');
+    };
+
     CombinedPlayer.prototype.abort = function abort() {
         if (this.oAdvPlayer) this.oAdvPlayer.abort();
         if (this.oVpaidPlayer) this.oVpaidPlayer.abort();
@@ -612,7 +627,7 @@ var CombinedPlayer = (function () {
 //
 exports.CombinedPlayer = CombinedPlayer;
 
-},{"../js/AdvPlayer":1,"../js/HTMLPlayer":3,"../js/VASTTag":5,"../js/VpaidPlayer":6,"../js/YoutubePlayer":7,"../js/event":8,"../js/scriptRequest":9,"../js/scriptonload":10}],3:[function(require,module,exports){
+},{"../js/AdvPlayer":1,"../js/HTMLPlayer":3,"../js/IMA":4,"../js/VASTTag":6,"../js/VpaidPlayer":7,"../js/YoutubePlayer":8,"../js/event":9,"../js/scriptRequest":10,"../js/scriptonload":11}],3:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1240,7 +1255,154 @@ var _default = (function () {
 exports['default'] = _default;
 module.exports = exports['default'];
 
-},{"../js/Meter":4}],4:[function(require,module,exports){
+},{"../js/Meter":5}],4:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _jsScriptonload = require('../js/scriptonload');
+
+var IMA = (function () {
+	function IMA(param) {
+		_classCallCheck(this, IMA);
+
+		this._declare(param);
+		this._insertVideoTag();
+		this._run();
+
+		/*scriptonload(['//imasdk.googleapis.com/js/sdkloader/ima3.js'], () => {
+  		});*/
+	}
+
+	IMA.prototype._getHtml = function _getHtml() {
+		return '<div data-js="adv-player" class="advPlayer">' + '<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
+	};
+
+	IMA.prototype._declare = function _declare(param) {
+		this.param = param;
+		this.oUPlayer = this.param.oUPlayer;
+		this.path = this.param.path;
+		this.insert = this.oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="adv"]');
+		this.insert.innerHTML = this._getHtml();
+		this.wrapper = this.insert.firstChild;
+		this.video = this.oUPlayer.initVideo;
+		this.slot = this.wrapper.querySelector('[data-js="vpaid-slot"]');
+	};
+
+	IMA.prototype._insertVideoTag = function _insertVideoTag() {
+		this.video.removeAttribute('style');
+		this.video.className = 'advPlayer_video';
+		this.wrapper.insertBefore(this.video, this.slot);
+	};
+
+	IMA.prototype._run = function _run() {
+		/*
+  	google
+   https://developers.google.com/interactive-media-ads/docs/sdks/html5/
+   */
+
+		/* for code */
+		var adContainer = this.slot;
+		var videoContent = this.video;
+		var adsManager;
+		var self = this;
+
+		var adDisplayContainer = new google.ima.AdDisplayContainer(adContainer, videoContent);
+
+		// Must be done as the result of a user action on mobile
+		adDisplayContainer.initialize();
+
+		// Re-use this AdsLoader instance for the entire lifecycle of your page.
+		var adsLoader = new google.ima.AdsLoader(adDisplayContainer);
+
+		// Add event listeners
+		adsLoader.addEventListener(google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED, onAdsManagerLoaded, false);
+		adsLoader.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, onAdError, false);
+
+		function onAdError(adErrorEvent) {
+			// Handle the error logging and destroy the AdsManager
+			console.log('Uplayer', 'IMA error - ' + adErrorEvent.getError());
+			try {
+				adsManager.destroy();
+			} catch (e) {};
+			self.param.onError();
+		}
+
+		// An event listener to tell the SDK that our content video
+		// is completed so the SDK can play any post-roll ads.
+		var contentEndedListener = function contentEndedListener() {
+			adsLoader.contentComplete();
+		};
+		videoContent.onended = contentEndedListener;
+
+		// Request video ads.
+		var adsRequest = new google.ima.AdsRequest();
+		adsRequest.adTagUrl = '//googleads.g.doubleclick.net/pagead/ads?ad_type=video&client=ca-video-pub-4968145218643279&videoad_start_delay=0&description_url=http%3A%2F%2Fwww.google.com&max_ad_duration=40000&adtest=on';
+		adsRequest.adTagUrl = 'https://googleads.g.doubleclick.net/pagead/ads?ad_type=skippablevideo&client=ca-video-pub-3605597367359598&description_url=http%3A%2F%2Fkinoafisha.info&videoad_start_delay=0&hl=ru';
+		//adsRequest.adTagUrl = '//pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=';
+
+		// Specify the linear and nonlinear slot sizes. This helps the SDK to
+		// select the correct creative if multiple are returned.
+		adsRequest.linearAdSlotWidth = 1200;
+		adsRequest.linearAdSlotHeight = 600;
+
+		//var playButton = document.getElementById('playButton');
+		//playButton.addEventListener('click', requestAds);
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active'; /* TODO */
+		requestAds();
+
+		function requestAds() {
+			adsLoader.requestAds(adsRequest);
+		}
+
+		function onAdsManagerLoaded(adsManagerLoadedEvent) {
+			// Get the ads manager.
+			adsManager = adsManagerLoadedEvent.getAdsManager(videoContent); // See API reference for contentPlayback
+
+			// Add listeners to the required events.
+			adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, onAdError);
+			adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, onContentPauseRequested);
+			adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, onContentResumeRequested);
+			adsManager.addEventListener(google.ima.AdEvent.Type.ALL_ADS_COMPLETED, function () {
+				self.oUPlayer.onAdsCompleted.call(self.oUPlayer);
+			});
+
+			try {
+				// Initialize the ads manager. Ad rules playlist will start at this time.
+				adsManager.init(640, 360, google.ima.ViewMode.NORMAL);
+				// Call start to show ads. Single video and overlay ads will
+				// start at this time; this call will be ignored for ad rules, as ad rules
+				// ads start when the adsManager is initialized.
+				adsManager.start();
+			} catch (adError) {
+				// An error may be thrown if there was a problem with the VAST response.
+				this.param.onError();
+			}
+		}
+
+		function onContentPauseRequested() {
+			// This function is where you should setup UI for showing ads (e.g.
+			// display ad timer countdown, disable seeking, etc.)
+			videoContent.removeEventListener('ended', contentEndedListener);
+			videoContent.pause();
+		}
+
+		function onContentResumeRequested() {
+			// This function is where you should ensure that your UI is ready
+			// to play content.
+			videoContent.addEventListener('ended', contentEndedListener);
+			videoContent.play();
+		}
+	};
+
+	return IMA;
+})();
+
+exports.IMA = IMA;
+
+},{"../js/scriptonload":11}],5:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1390,14 +1552,12 @@ exports['default'] = _default;
 ;
 module.exports = exports['default'];
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-var _jsScriptonload = require('../js/scriptonload');
 
 var VASTTag = (function () {
 	function VASTTag(param) {
@@ -1594,7 +1754,7 @@ var VASTTag = (function () {
 
 exports.VASTTag = VASTTag;
 
-},{"../js/scriptonload":10}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1611,7 +1771,7 @@ var VpaidPlayer = (function () {
 	}
 
 	VpaidPlayer.prototype._getHtml = function _getHtml() {
-		return '<div data-js="adv-player" class="advPlayer">' + '<div data-js="vpaid-slot" style="position:absolute;z-index:2;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
+		return '<div data-js="adv-player" class="advPlayer">' + '<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
 	};
 
 	VpaidPlayer.prototype._createElements = function _createElements(oUPlayer, vast) {
@@ -1735,7 +1895,7 @@ var VpaidPlayer = (function () {
 	VpaidPlayer.prototype.start = function start(data) {
 		/* TODO сейчас данные никакие не передаются, а сохраняются при инициализции плеера. Пока не знаю как лучше будет */
 		var self = this;
-		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active'; /* TODO */
 		this.vpaid.startAd();
 	};
 
@@ -1745,6 +1905,8 @@ var VpaidPlayer = (function () {
 		if (this.isFinish) return;
 		this.isFinish = true;
 
+		this.oUPlayer.isShowAdv = false; /* TODO ??  */
+
 		if (!this.isAdLoaded) {
 			this.oUPlayer._start();
 			this.del();
@@ -1752,7 +1914,7 @@ var VpaidPlayer = (function () {
 			var oUPlayer = this.oUPlayer;
 
 			if (this.isAdClickThru) {
-				/* был клик по рекламе, видео не запускаем, пользователь может смотреть рекламу */
+				/* был клик по рекламе, видео не запускаем, потому что в этот момент пользователь может смотреть рекламу */
 				this.oUPlayer._returnOriginalView('oVpaidPlayer');
 			} else {
 				if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
@@ -1822,7 +1984,7 @@ var VpaidPlayer = (function () {
 
 exports.VpaidPlayer = VpaidPlayer;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1891,7 +2053,7 @@ var YoutubePlayer = (function () {
 //
 exports.YoutubePlayer = YoutubePlayer;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2008,7 +2170,7 @@ var event = (function () {
 
 exports.event = event;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2063,7 +2225,7 @@ var scriptRequest = function scriptRequest(url, onSuccess, onError) {
 
 exports.scriptRequest = scriptRequest;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2139,7 +2301,7 @@ var scriptonload = function scriptonload(srcAll, func) {
 };
 exports.scriptonload = scriptonload;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2190,4 +2352,4 @@ exports['default'] = (function (root, doc) {
 ;
 module.exports = exports['default'];
 
-},{"../js/CombinedPlayer":2}]},{},[11]);
+},{"../js/CombinedPlayer":2}]},{},[12]);

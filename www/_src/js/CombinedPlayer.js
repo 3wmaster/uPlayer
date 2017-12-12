@@ -6,6 +6,7 @@ import {YoutubePlayer} from '../js/YoutubePlayer';
 import {VpaidPlayer} from '../js/VpaidPlayer';
 import {scriptonload} from '../js/scriptonload';
 import {VASTTag} from '../js/VASTTag';
+import {IMA} from '../js/IMA';
 
 var CombinedPlayer =  class {
 	constructor(wrapper, param) {
@@ -37,6 +38,7 @@ var CombinedPlayer =  class {
     _checkInitPlayers(){
         this.countPLayers++;
         if(1===1){ /* TODO */
+
             // Все плееры инициализированы. Можно показывать обложку и, при необходимости, сразу запускать
             if(this.data.autoplay && !uPlayer.isNeedActivation) this._getAdvData();
             this.wrapper.className = this.wrapper.className + ' js-ready';
@@ -115,8 +117,14 @@ var CombinedPlayer =  class {
 
         event.add(this.btn, 'click', function(e){
             e.preventDefault();
-            self._initializeVideoTag.call(self);
-            self._getAdvData.call(self);
+
+            if(self.isShowAdv) {
+                self._initializeVideoTag.call(self);
+                self._getAdvData.call(self);
+            }
+            else {
+                self._start.call(self);
+            }
         });
 	}
 
@@ -126,32 +134,27 @@ var CombinedPlayer =  class {
         document.body.appendChild(initVideo);
         initVideo.load();
         this.initVideo = initVideo;
+
+        /* for IOS */
+        if(this.oYoutubePlayer) this.oYoutubePlayer.initialize();
+        else this.oHTMLPlayer.initialize();
+
+
     }
 
     _start(){
         uPlayer.abortAll(this);
-
-        if(this.oYoutubePlayer) this.oYoutubePlayer.initialize();
-        else this.oHTMLPlayer.initialize();
 
         this._sendStat('');
 
         if(this.oAdvPlayer && this.isShowAdv) { /* TODO избавиться от isShowAdv Нужно удалять oAdvPlayer */
             this.oAdvPlayer.start();
 
-            /* for IOS */
-            if(this.oYoutubePlayer) this.oYoutubePlayer.initialize();
-            else this.oHTMLPlayer.initialize();
-
             //this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
             this.isShowAdv = false;  //если один раз показали - больше в этом плеере не показываем, без разницы какая реклама
         }
         else if(this.oVpaidPlayer && this.isShowAdv){ /* TODO избавиться от isShowAdv Нужно удалять oVpaidPlayer */
             this.oVpaidPlayer.start();
-
-            /* for IOS */
-            if(this.oYoutubePlayer) this.oYoutubePlayer.initialize();
-            else this.oHTMLPlayer.initialize();
 
             //this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
             this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
@@ -265,8 +268,9 @@ var CombinedPlayer =  class {
             pathMoevideo = '//moevideo.biz/vast&vt=js',
             pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
             pathWmg = '//an.facebook.com/v1/instream/vast.xml?placementid=TEST_PLACEMENT_ID&pageurl=http://www.google.com&maxaddurationms=30000',
+            pathOptAd360 = '//ima3vpaid.appspot.com/?adTagUrl=https%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fclient%3Dca-video-pub-5512390705137507%26slotname%3D9018911080%2F8793747051%26ad_type%3Dvideo%26description_url%3Dhttp%253A%252F%252Fkinoafisha.info%26max_ad_duration%3D60000%26videoad_start_delay%3D0%26type%3Djs&type=js',
 
-            pathes = [pathBooster, pathMoevideo, pathYandex, pathVideonow],
+            pathes = [pathVideonow, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex],
 
             path = () => {
 
@@ -280,12 +284,14 @@ var CombinedPlayer =  class {
                 if(this.data.dev === 'moevideo') return pathMoevideo;
                 if(this.data.dev === 'videonow') return pathVideonow;
                 if(this.data.dev === 'wmg') return pathWmg;
+                if(this.data.dev === 'optAd360') return pathOptAd360;
 
                 //
                 return pathes[Math.floor(Math.random() * (pathes.length))];
             }(),
-            _getOur = function(){
-                if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
+            _getOur = function(){ /* TODO пока отключил, чет не работает */
+                self._start.call(self);
+                /*if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
                     try {
                         localStorage.isKinoafishaVideoAdv = curTime;
                         data.mediaFile = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
@@ -295,13 +301,25 @@ var CombinedPlayer =  class {
                         data.keyFrameAll = [];
                         self._onSuccessGetAdvData.call(self, data);
                     } catch(e){
-                        //например IOS частный доступ
                         self._start.call(self);
                     }
                 }
-                else self._start.call(self);
-            },
-            vastTagObj = new VASTTag({
+                else self._start.call(self);*/
+            };
+
+        //
+        if(1==2) {
+
+            new IMA({
+                oUPlayer: this,
+                path: path,
+                onError:() => { /* например, блокировщик рекламы */
+                    _getOur();
+                }
+            })
+        }
+        else {
+            new VASTTag({
                 path: path,
                 onVast: function(data){
                     console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем mp4 плеер');
@@ -314,7 +332,8 @@ var CombinedPlayer =  class {
                 onError:() => { /* например, блокировщик рекламы */
                     _getOur();
                 }
-            });
+            })
+        }
     }
 
     /* больше не запрашиваем данные */
@@ -366,6 +385,14 @@ var CombinedPlayer =  class {
         self.oYoutubePlayer.afterEnd = function(){
             self._returnOriginalView.call(self, 'oYoutubePlayer');
         }
+    }
+
+    onAdsCompleted(){ /* TODO - сделать всю рекламу так */
+        if(this.oYoutubePlayer) this.oYoutubePlayer.start();
+        else this.oHTMLPlayer.start();
+
+        this.isShowAdv = false; /* TODO ??  */
+        this.wrapper.className = this.wrapper.className.replace(' js-active-adv', ' js-active-video');
     }
 
     abort(){

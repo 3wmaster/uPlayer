@@ -15,7 +15,7 @@ var VpaidPlayer = (function () {
 	}
 
 	VpaidPlayer.prototype._getHtml = function _getHtml() {
-		return '<div data-js="adv-player" class="advPlayer">' + '<div data-js="vpaid-slot" style="position:absolute;z-index:2;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
+		return '<div data-js="adv-player" class="advPlayer">' + '<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
 	};
 
 	VpaidPlayer.prototype._createElements = function _createElements(oUPlayer, vast) {
@@ -139,7 +139,7 @@ var VpaidPlayer = (function () {
 	VpaidPlayer.prototype.start = function start(data) {
 		/* TODO сейчас данные никакие не передаются, а сохраняются при инициализции плеера. Пока не знаю как лучше будет */
 		var self = this;
-		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active'; /* TODO */
 		this.vpaid.startAd();
 	};
 
@@ -149,6 +149,8 @@ var VpaidPlayer = (function () {
 		if (this.isFinish) return;
 		this.isFinish = true;
 
+		this.oUPlayer.isShowAdv = false; /* TODO ??  */
+
 		if (!this.isAdLoaded) {
 			this.oUPlayer._start();
 			this.del();
@@ -156,7 +158,7 @@ var VpaidPlayer = (function () {
 			var oUPlayer = this.oUPlayer;
 
 			if (this.isAdClickThru) {
-				/* был клик по рекламе, видео не запускаем, пользователь может смотреть рекламу */
+				/* был клик по рекламе, видео не запускаем, потому что в этот момент пользователь может смотреть рекламу */
 				this.oUPlayer._returnOriginalView('oVpaidPlayer');
 			} else {
 				if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
