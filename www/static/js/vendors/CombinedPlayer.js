@@ -10,6 +10,7 @@ var _default = (function () {
 		_classCallCheck(this, _default);
 
 		this._createElements(oUPlayer, data);
+		this._insertVideoTag();
 		this._addEventsName();
 		this._addEvents();
 	}
@@ -473,14 +474,18 @@ var CombinedPlayer = (function () {
             pathMoevideo = '//moevideo.biz/vast&vt=js',
             pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
             pathWmg = '//an.facebook.com/v1/instream/vast.xml?placementid=TEST_PLACEMENT_ID&pageurl=http://www.google.com&maxaddurationms=30000',
-            pathOptAd360 = '//ima3vpaid.appspot.com/?adTagUrl=https%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fclient%3Dca-video-pub-5512390705137507%26slotname%3D9018911080%2F8793747051%26ad_type%3Dvideo%26description_url%3Dhttp%253A%252F%252Fkinoafisha.info%26max_ad_duration%3D60000%26videoad_start_delay%3D0%26type%3Djs&type=js',
-            pathes = [pathVideonow, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex],
+            pathOptAd360 = '//ima3vpaid.appspot.com/?adTagUrl=https%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fclient%3Dca-video-pub-5512390705137507%26slotname%3D9018911080%2F5952557309%26ad_type%3Dvideo%26description_url%3Dhttp%253A%252F%252Fkinoafisha.info%26max_ad_duration%3D60000%26videoad_start_delay%3D0&type=js',
+            pathOptAd3602 = '//googleads.g.doubleclick.net/pagead/ads?client=ca-video-pub-5512390705137507&slotname=9018911080/5952557309&ad_type=video&description_url=http%3A%2F%2Fkinoafisha.info&max_ad_duration=60000&videoad_start_delay=0',
+            pathMediawayss = '//ad.mediawayss.com/delivery/impress?video=vast&pzoneid=823&ch=DOMAIN_HERE',
+            pathes = [pathVideonow, pathVideonow, pathVideonow, pathMediawayss, pathMediawayss, pathMediawayss, pathMediawayss, pathMediawayss, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex],
             path = (function () {
+
+            //return '//pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=' + curTime;
 
             if (_this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
             if (_this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
             if (_this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
-            if (_this.data.dev === 'yandex') return pathYandexTest;
+            if (_this.data.dev === 'yandex') return pathYandex;
             if (_this.data.dev === 'google-test') return pathGoogleTest;
             if (_this.data.dev === 'booster') return pathBooster;
             if (_this.data.dev === 'booster? -popcorn') return pathBoosterTestPopcorn;
@@ -488,6 +493,8 @@ var CombinedPlayer = (function () {
             if (_this.data.dev === 'videonow') return pathVideonow;
             if (_this.data.dev === 'wmg') return pathWmg;
             if (_this.data.dev === 'optAd360') return pathOptAd360;
+            if (_this.data.dev === 'optAd3602') return pathOptAd3602;
+            if (_this.data.dev === 'mediawayss') return pathMediawayss;
 
             //
             return pathes[Math.floor(Math.random() * pathes.length)];

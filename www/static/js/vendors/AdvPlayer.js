@@ -10,6 +10,7 @@ var _default = (function () {
 		_classCallCheck(this, _default);
 
 		this._createElements(oUPlayer, data);
+		this._insertVideoTag();
 		this._addEventsName();
 		this._addEvents();
 	}

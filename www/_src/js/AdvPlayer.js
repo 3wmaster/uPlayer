@@ -2,6 +2,7 @@
 export default class{
 	constructor(oUPlayer, data){
 		this._createElements(oUPlayer, data);
+		this._insertVideoTag();
 		this._addEventsName();
 		this._addEvents();
 	}
