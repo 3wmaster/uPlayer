@@ -19,12 +19,26 @@ export default function (root, doc){
       }
     };
 
-    uPlayer.isMobile = function(){
+    uPlayer.isMobile = function(){ /* TODO есть еще mobileAgent оставить его наверное */
         try{
             return APP.vars.isMobile;
         } catch(e){
             return false;
         }
+    }();
+
+    uPlayer.mobileAgent = function(){
+        var agentAll = ['ipod','iphone','ipad', 'android', 'blackberry'],
+            i = 0;
+
+        for(i;i< agentAll.length;i++){
+            var re = new RegExp(agentAll[i], 'i');
+            if( re.test( navigator.userAgent ) ){
+                var system = i<3 ? 'IOS' : 'notIOS'; /* TODO */
+                return {'name': agentAll[i], 'system': system};
+            }
+        }
+        return false;
     }();
 
     uPlayer.isNeedActivation = function(){

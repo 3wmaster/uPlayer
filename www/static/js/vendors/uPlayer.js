@@ -477,7 +477,17 @@ var CombinedPlayer = (function () {
             pathOptAd360 = '//ima3vpaid.appspot.com/?adTagUrl=https%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fclient%3Dca-video-pub-5512390705137507%26slotname%3D9018911080%2F5952557309%26ad_type%3Dvideo%26description_url%3Dhttp%253A%252F%252Fkinoafisha.info%26max_ad_duration%3D60000%26videoad_start_delay%3D0&type=js',
             pathOptAd3602 = '//googleads.g.doubleclick.net/pagead/ads?client=ca-video-pub-5512390705137507&slotname=9018911080/5952557309&ad_type=video&description_url=http%3A%2F%2Fkinoafisha.info&max_ad_duration=60000&videoad_start_delay=0',
             pathMediawayss = '//ad.mediawayss.com/delivery/impress?video=vast&pzoneid=823&ch=DOMAIN_HERE',
-            pathInVideo = 'http://instreamvideo.ru/core/vpaid/linear_test?pid=7&vr=1&rid=' + curTime + '&wtag=' + (this.isMobileAgent ? 'kinoafisha_mobile' : 'kinoafisha') + '&puid7=1&puid8=15&puid10=4&puid11=1&puid12=16&dl=' + url + '&duration=&vn=' + url,
+            pathInVideo = (function () {
+            var pidDesktop = 349,
+                pidIOS = 350,
+                pidAndroid = 351,
+                pid = (function () {
+                if (!uPlayer.mobileAgent) return pidDesktop;else if (uPlayer.mobileAgent.system == 'IOS') return pidIOS;else return pidAndroid;
+            })();
+
+            //
+            return 'http://instreamvideo.ru/core/vpaid/linear?pid=' + pid + '&vr=1&rid=' + curTime + '&puid7=1&puid8=15&puid10=4&puid11=1&puid12=16&dl=' + url + '&duration=&vn=' + url;
+        })(),
             pathes = [pathVideonow, pathVideonow, pathVideonow, pathMediawayss, pathMediawayss, pathMediawayss, pathMediawayss, pathMediawayss, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex],
             path = (function () {
 
@@ -521,6 +531,8 @@ var CombinedPlayer = (function () {
         };
 
         //
+        console.log(path);
+
         if (1 == 2) {
 
             new _jsIMA.IMA({
@@ -2337,11 +2349,26 @@ exports['default'] = (function (root, doc) {
     };
 
     uPlayer.isMobile = (function () {
+        /* TODO есть еще mobileAgent оставить его наверное */
         try {
             return APP.vars.isMobile;
         } catch (e) {
             return false;
         }
+    })();
+
+    uPlayer.mobileAgent = (function () {
+        var agentAll = ['ipod', 'iphone', 'ipad', 'android', 'blackberry'],
+            i = 0;
+
+        for (i; i < agentAll.length; i++) {
+            var re = new RegExp(agentAll[i], 'i');
+            if (re.test(navigator.userAgent)) {
+                var system = i < 3 ? 'IOS' : 'notIOS'; /* TODO */
+                return { 'name': agentAll[i], 'system': system };
+            }
+        }
+        return false;
     })();
 
     uPlayer.isNeedActivation = (function () {
