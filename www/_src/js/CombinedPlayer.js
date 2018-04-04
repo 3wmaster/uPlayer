@@ -286,12 +286,52 @@ var CombinedPlayer =  class {
                 return ('//instreamvideo.ru/core/vpaid/linear?pid='+ pid +'&vr=1&rid='+ curTime +'&puid7=1&puid8=15&puid10=4&puid11=1&puid12=16&dl='+ url +'&duration=&vn='+ url);
 
             }(),
-            pathes = [pathInVideo, pathInVideo, pathInVideo, pathVideonow, pathVideonow, pathVideonow, pathMediawayss, pathMediawayss, pathMediawayss, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex],
+
+            pathes = {
+                'RCA': pathYandex,
+                'Videonow': pathVideonow,
+                'Mediawayss': pathMediawayss,
+                'pathInVideo': pathInVideo,
+                'UnionTraff': pathUnion
+            },
+
+            priorities = {
+                'RCA': 45,
+                'Videonow': 15,
+                'Mediawayss': 15,
+                'pathInVideo': 15,
+                'UnionTraff': 10
+            },
+
+            randomKey = function(data){ 
+                var randomArr = [];
+
+                for (var key in data){
+                    var arr = [],
+                        i = 0,
+                        j = data[key];
+
+                    for(i,j; i<j;i++){
+                        arr.push(key);
+                    }
+                    randomArr = randomArr.concat(arr);
+                }
+
+                if(randomArr.length != 100) {
+                    throw new Error('Общее значение должно быть равно 100');
+                }
+
+                return randomArr[randomInteger(0,99)];
+            },
+
+            randomInteger = function(min, max) {
+                var rand = min - 0.5 + Math.random() * (max - min + 1)
+                rand = Math.round(rand);
+                return rand;
+            },
 
             path = () => {
-
                 //return '//pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=' + curTime;
-
                 if(this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
                 if(this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
                 if(this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
@@ -309,8 +349,10 @@ var CombinedPlayer =  class {
                 if(this.data.dev === 'union') return pathUnion;
 
                 //
-                return pathes[Math.floor(Math.random() * (pathes.length))];
+                //return pathes[Math.floor(Math.random() * (pathes.length))];
+                return pathes[randomKey(priorities)];
             }(),
+
             _getOur = function(){ /* TODO пока отключил, чет не работает */
                 self._start.call(self);
                 /*if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
@@ -327,10 +369,7 @@ var CombinedPlayer =  class {
                     }
                 }
                 else self._start.call(self);*/
-            }; 
-
-        //
-        console.log(path);
+            };
 
         if(1==2) {
 

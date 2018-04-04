@@ -489,11 +489,47 @@ var CombinedPlayer = (function () {
             //
             return '//instreamvideo.ru/core/vpaid/linear?pid=' + pid + '&vr=1&rid=' + curTime + '&puid7=1&puid8=15&puid10=4&puid11=1&puid12=16&dl=' + url + '&duration=&vn=' + url;
         })(),
-            pathes = [pathInVideo, pathInVideo, pathInVideo, pathVideonow, pathVideonow, pathVideonow, pathMediawayss, pathMediawayss, pathMediawayss, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex, pathYandex],
+            pathes = {
+            'RCA': pathYandex,
+            'Videonow': pathVideonow,
+            'Mediawayss': pathMediawayss,
+            'pathInVideo': pathInVideo,
+            'UnionTraff': pathUnion
+        },
+            priorities = {
+            'RCA': 45,
+            'Videonow': 15,
+            'Mediawayss': 15,
+            'pathInVideo': 15,
+            'UnionTraff': 10
+        },
+            randomKey = function randomKey(data) {
+            var randomArr = [];
+
+            for (var key in data) {
+                var arr = [],
+                    i = 0,
+                    j = data[key];
+
+                for (i, j; i < j; i++) {
+                    arr.push(key);
+                }
+                randomArr = randomArr.concat(arr);
+            }
+
+            if (randomArr.length != 100) {
+                throw new Error('Общее значение должно быть равно 100');
+            }
+
+            return randomArr[randomInteger(0, 99)];
+        },
+            randomInteger = function randomInteger(min, max) {
+            var rand = min - 0.5 + Math.random() * (max - min + 1);
+            rand = Math.round(rand);
+            return rand;
+        },
             path = (function () {
-
             //return '//pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=' + curTime;
-
             if (_this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
             if (_this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
             if (_this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
@@ -511,7 +547,8 @@ var CombinedPlayer = (function () {
             if (_this.data.dev === 'union') return pathUnion;
 
             //
-            return pathes[Math.floor(Math.random() * pathes.length)];
+            //return pathes[Math.floor(Math.random() * (pathes.length))];
+            return pathes[randomKey(priorities)];
         })(),
             _getOur = function _getOur() {
             /* TODO пока отключил, чет не работает */
@@ -531,9 +568,6 @@ var CombinedPlayer = (function () {
             }
             else self._start.call(self);*/
         };
-
-        //
-        console.log(path);
 
         if (1 == 2) {
 
