@@ -271,7 +271,8 @@ var CombinedPlayer =  class {
             pathOptAd360 = '//ima3vpaid.appspot.com/?adTagUrl=https%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fclient%3Dca-video-pub-5512390705137507%26slotname%3D9018911080%2F5952557309%26ad_type%3Dvideo%26description_url%3Dhttp%253A%252F%252Fkinoafisha.info%26max_ad_duration%3D60000%26videoad_start_delay%3D0&type=js',
             pathOptAd3602 = '//googleads.g.doubleclick.net/pagead/ads?client=ca-video-pub-5512390705137507&slotname=9018911080/5952557309&ad_type=video&description_url=http%3A%2F%2Fkinoafisha.info&max_ad_duration=60000&videoad_start_delay=0',
             pathMediawayss = '//ad.mediawayss.com/delivery/impress?video=vast&pzoneid=823&ch=DOMAIN_HERE',
-            pathUnion = '//s3.utraff.com/index.php?r=vmap/vast&host_id=1746&rand=' + curTime,
+            pathUnion = '//s3.utraff.com/index.php?r=vmap/vast&host_id=1945&rand=' + curTime,
+
             pathInVideo = function(){
                 var pidDesktop = 349,
                     pidIOS = 350,
