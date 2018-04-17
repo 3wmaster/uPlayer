@@ -493,14 +493,14 @@ var CombinedPlayer = (function () {
             'RCA': pathYandex,
             'Videonow': pathVideonow,
             'Mediawayss': pathMediawayss,
-            'pathInVideo': pathInVideo,
+            'InVideo': pathInVideo,
             'UnionTraff': pathUnion
         },
             priorities = {
             'RCA': 45,
             'Videonow': 15,
             'Mediawayss': 15,
-            'pathInVideo': 15,
+            'InVideo': 15,
             'UnionTraff': 10
         },
             randomKey = function randomKey(data) {
