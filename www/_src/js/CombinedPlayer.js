@@ -272,7 +272,6 @@ var CombinedPlayer =  class {
             pathOptAd3602 = '//googleads.g.doubleclick.net/pagead/ads?client=ca-video-pub-5512390705137507&slotname=9018911080/5952557309&ad_type=video&description_url=http%3A%2F%2Fkinoafisha.info&max_ad_duration=60000&videoad_start_delay=0',
             pathMediawayss = '//ad.mediawayss.com/delivery/impress?video=vast&pzoneid=823&ch=DOMAIN_HERE',
             pathUnion = '//s3.utraff.com/index.php?r=vmap/vast&host_id=1945&rand=' + curTime,
-
             pathInVideo = function(){
                 var pidDesktop = 349,
                     pidIOS = 350,
@@ -332,6 +331,11 @@ var CombinedPlayer =  class {
             },
 
             path = () => {
+                var url = new URL(window.location.href),
+                    ads = url.searchParams.get('uPLayerAds');
+
+                if(pathes[ads]) return pathes[ads];
+
                 //return '//pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=' + curTime;
                 if(this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
                 if(this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
@@ -351,6 +355,7 @@ var CombinedPlayer =  class {
 
                 //
                 //return pathes[Math.floor(Math.random() * (pathes.length))];
+
                 return pathes[randomKey(priorities)];
             }(),
 
