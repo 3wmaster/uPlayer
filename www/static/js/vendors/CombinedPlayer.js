@@ -471,7 +471,7 @@ var CombinedPlayer = (function () {
             pathBoosterTest = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
             pathBoosterTestPopcorn = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
             pathBooster = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaUZ6TXNZWUpEQ283UWFTZXpXRG5LU2c9PQ==&autoplay=1&url=' + url,
-            pathMoevideo = '//moevideo.biz/vast&vt=js',
+            pathMoevideo = '//moevideo.biz/vast?ref=kinoafisha.info&impressionAfterPaid=1&es=1',
             pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
             pathWmg = '//an.facebook.com/v1/instream/vast.xml?placementid=TEST_PLACEMENT_ID&pageurl=http://www.google.com&maxaddurationms=30000',
             pathOptAd360 = '//ima3vpaid.appspot.com/?adTagUrl=https%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fclient%3Dca-video-pub-5512390705137507%26slotname%3D9018911080%2F5952557309%26ad_type%3Dvideo%26description_url%3Dhttp%253A%252F%252Fkinoafisha.info%26max_ad_duration%3D60000%26videoad_start_delay%3D0&type=js',
@@ -494,14 +494,16 @@ var CombinedPlayer = (function () {
             'Videonow': pathVideonow,
             'Mediawayss': pathMediawayss,
             'InVideo': pathInVideo,
-            'UnionTraff': pathUnion
+            'UnionTraff': pathUnion,
+            'Moevideo': pathMoevideo
         },
             priorities = {
-            'RCA': 45,
-            'Videonow': 15,
-            'Mediawayss': 15,
-            'InVideo': 15,
-            'UnionTraff': 10
+            'RCA': 41,
+            'Videonow': 13,
+            'Mediawayss': 13,
+            'InVideo': 13,
+            'UnionTraff': 10,
+            'Moevideo': 10
         },
             randomKey = function randomKey(data) {
             var randomArr = [];
