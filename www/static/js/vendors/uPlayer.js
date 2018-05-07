@@ -498,9 +498,8 @@ var CombinedPlayer = (function () {
             'Moevideo': pathMoevideo
         },
             priorities = {
-            'RCA': 41,
+            'RCA': 54,
             'Videonow': 13,
-            'Mediawayss': 13,
             'InVideo': 13,
             'UnionTraff': 10,
             'Moevideo': 10
