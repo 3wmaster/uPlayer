@@ -3,7 +3,7 @@ import {CombinedPlayer} from '../js/CombinedPlayer';
 export default function (root, doc){
     if(root.uPlayer) return false;
 
-    var uPlayer = function(wrapper){
+    var uPlayer = function(wrapper){ 
         var param = JSON.parse(wrapper.getAttribute('data-param'));
         if(!param.name) param.name = 'player-' + String(Math.random()).slice(-6);
         if(!uPlayer.all[param.name]) uPlayer.all[param.name] = new CombinedPlayer(wrapper, param);

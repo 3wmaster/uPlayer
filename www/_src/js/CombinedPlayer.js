@@ -49,7 +49,11 @@ var CombinedPlayer =  class {
         var age = this.data.age ? '<svg class="combinedPlayer_header_age" role="img"><use xlink:href="/static/img/symbols/sprite.svg#age'+ this.data.age +'"></use></svg>' : '';
         var allVideoLink = this.data.allVideoLink ? '<a class="combinedPlayer_header_allVideoLink" href="'+ this.data.allVideoLink +'">Все видео</a>' : '';
         var category = this.data.category ? '<span class="combinedPlayer_header_category">'+ this.data.category +'</span>' : '';
-
+        var preview = () => {
+            if(this.data.cover.indexOf('.mp4') !== -1){
+                return '<video loop muted autoplay class="combinedPlayer_preview" src="'+ this.data.cover +'"></video>';
+            } else return '<div class="combinedPlayer_preview" style="background-image:url('+ this.data.cover +')">';
+        }();
         var btns = this.data.online ?
             '<div class="combinedPlayer_playBtns">' +
                 '<div class="combinedPlayer_playBtns_frame">' +
@@ -72,7 +76,7 @@ var CombinedPlayer =  class {
 
         this.wrapper.innerHTML = '<div data-CombinedPlayer-insert="adv" class="combinedPlayer_insert combinedPlayer_insert-adv"></div>'+
             '<div data-CombinedPlayer-insert="video" class="combinedPlayer_insert combinedPlayer_insert-video"></div>'+
-            '<div class="combinedPlayer_preview" style="background-image:url('+ this.data.cover +')">'+
+            preview +
             '<span class="combinedPlayer_shadow"></span>'+ btns +
             '<div class="combinedPlayer_header">' +
             '<div class="combinedPlayer_header_left">'+ '&nbsp;' + '</div>' +

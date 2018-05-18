@@ -282,13 +282,19 @@ var CombinedPlayer = (function () {
     };
 
     CombinedPlayer.prototype._insertHTML = function _insertHTML() {
+        var _this = this;
+
         var age = this.data.age ? '<svg class="combinedPlayer_header_age" role="img"><use xlink:href="/static/img/symbols/sprite.svg#age' + this.data.age + '"></use></svg>' : '';
         var allVideoLink = this.data.allVideoLink ? '<a class="combinedPlayer_header_allVideoLink" href="' + this.data.allVideoLink + '">Все видео</a>' : '';
         var category = this.data.category ? '<span class="combinedPlayer_header_category">' + this.data.category + '</span>' : '';
-
+        var preview = (function () {
+            if (_this.data.cover.indexOf('.mp4') !== -1) {
+                return '<video loop muted autoplay class="combinedPlayer_preview" src="' + _this.data.cover + '"></video>';
+            } else return '<div class="combinedPlayer_preview" style="background-image:url(' + _this.data.cover + ')">';
+        })();
         var btns = this.data.online ? '<div class="combinedPlayer_playBtns">' + '<div class="combinedPlayer_playBtns_frame">' + '<a class="combinedPlayer_onlineBtn" href="' + this.data.online + '">' + '<svg class="combinedPlayer_onlineBtn_symbol" role="img"><use xlink:href="/static/img/symbols/sprite.svg#play"></use></svg>' + '<span class="combinedPlayer_onlineBtn_text">Смотреть online<br />бесплатно</span>' + '</a>' + '<a data-CombinedPlayer-btn class="combinedPlayer_trailerBtn" href="#">' + '<span class="combinedPlayer_trailerBtn_text">трейлер</span>' + '<svg class="combinedPlayer_trailerBtn_symbol" role="img"><use xlink:href="/static/img/symbols/sprite.svg#play"></use></svg>' + '</a>' + '</div>' + '</div>' : '<a data-CombinedPlayer-btn class="combinedPlayer_playBtn" href="#">' + '<span class="combinedPlayer_playBtn_circle">' + '<svg class="combinedPlayer_playBtn_symbol" role="img"><use xlink:href="/static/img/symbols/sprite.svg#play"></use></svg>' + '</span>' + '</a>';
 
-        this.wrapper.innerHTML = '<div data-CombinedPlayer-insert="adv" class="combinedPlayer_insert combinedPlayer_insert-adv"></div>' + '<div data-CombinedPlayer-insert="video" class="combinedPlayer_insert combinedPlayer_insert-video"></div>' + '<div class="combinedPlayer_preview" style="background-image:url(' + this.data.cover + ')">' + '<span class="combinedPlayer_shadow"></span>' + btns + '<div class="combinedPlayer_header">' + '<div class="combinedPlayer_header_left">' + '&nbsp;' + '</div>' + '<div class="combinedPlayer_header_right">' + category + allVideoLink + age + '</div>' + '</div>' + '</div>';
+        this.wrapper.innerHTML = '<div data-CombinedPlayer-insert="adv" class="combinedPlayer_insert combinedPlayer_insert-adv"></div>' + '<div data-CombinedPlayer-insert="video" class="combinedPlayer_insert combinedPlayer_insert-video"></div>' + preview + '<span class="combinedPlayer_shadow"></span>' + btns + '<div class="combinedPlayer_header">' + '<div class="combinedPlayer_header_left">' + '&nbsp;' + '</div>' + '<div class="combinedPlayer_header_right">' + category + allVideoLink + age + '</div>' + '</div>' + '</div>';
     };
 
     CombinedPlayer.prototype._defineUserAgent = function _defineUserAgent() {
@@ -444,7 +450,7 @@ var CombinedPlayer = (function () {
     };
 
     CombinedPlayer.prototype._getAdvData = function _getAdvData() {
-        var _this = this;
+        var _this2 = this;
 
         if (!this.isShowAdv) {
             this._start();
@@ -536,21 +542,21 @@ var CombinedPlayer = (function () {
             if (pathes[ads]) return pathes[ads];
 
             //return '//pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=' + curTime;
-            if (_this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
-            if (_this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
-            if (_this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
-            if (_this.data.dev === 'yandex') return pathYandex;
-            if (_this.data.dev === 'google-test') return pathGoogleTest;
-            if (_this.data.dev === 'booster') return pathBooster;
-            if (_this.data.dev === 'booster? -popcorn') return pathBoosterTestPopcorn;
-            if (_this.data.dev === 'moevideo') return pathMoevideo;
-            if (_this.data.dev === 'videonow') return pathVideonow;
-            if (_this.data.dev === 'wmg') return pathWmg;
-            if (_this.data.dev === 'optAd360') return pathOptAd360;
-            if (_this.data.dev === 'optAd3602') return pathOptAd3602;
-            if (_this.data.dev === 'mediawayss') return pathMediawayss;
-            if (_this.data.dev === 'inVideo') return pathInVideo;
-            if (_this.data.dev === 'union') return pathUnion;
+            if (_this2.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
+            if (_this2.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
+            if (_this2.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
+            if (_this2.data.dev === 'yandex') return pathYandex;
+            if (_this2.data.dev === 'google-test') return pathGoogleTest;
+            if (_this2.data.dev === 'booster') return pathBooster;
+            if (_this2.data.dev === 'booster? -popcorn') return pathBoosterTestPopcorn;
+            if (_this2.data.dev === 'moevideo') return pathMoevideo;
+            if (_this2.data.dev === 'videonow') return pathVideonow;
+            if (_this2.data.dev === 'wmg') return pathWmg;
+            if (_this2.data.dev === 'optAd360') return pathOptAd360;
+            if (_this2.data.dev === 'optAd3602') return pathOptAd3602;
+            if (_this2.data.dev === 'mediawayss') return pathMediawayss;
+            if (_this2.data.dev === 'inVideo') return pathInVideo;
+            if (_this2.data.dev === 'union') return pathUnion;
 
             //
             //return pathes[Math.floor(Math.random() * (pathes.length))];
