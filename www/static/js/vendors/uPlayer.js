@@ -484,6 +484,7 @@ var CombinedPlayer = (function () {
             pathOptAd3602 = '//googleads.g.doubleclick.net/pagead/ads?client=ca-video-pub-5512390705137507&slotname=9018911080/5952557309&ad_type=video&description_url=http%3A%2F%2Fkinoafisha.info&max_ad_duration=60000&videoad_start_delay=0',
             pathMediawayss = '//ad.mediawayss.com/delivery/impress?video=vast&pzoneid=823&ch=DOMAIN_HERE',
             pathUnion = '//s3.utraff.com/index.php?r=vmap/vast&host_id=1945&rand=' + curTime,
+            pathPladform = '//out.pladform.ru/getVast?pl=110461&type=&license=&thematic=&age=&duration=&dl=&target=adformat=',
             pathInVideo = (function () {
             var pidDesktop = 349,
                 pidIOS = 350,
@@ -557,6 +558,7 @@ var CombinedPlayer = (function () {
             if (_this2.data.dev === 'mediawayss') return pathMediawayss;
             if (_this2.data.dev === 'inVideo') return pathInVideo;
             if (_this2.data.dev === 'union') return pathUnion;
+            if (_this2.data.dev === 'pladform') return pathPladform;
 
             //
             //return pathes[Math.floor(Math.random() * (pathes.length))];
