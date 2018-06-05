@@ -276,7 +276,9 @@ var CombinedPlayer =  class {
             pathOptAd3602 = '//googleads.g.doubleclick.net/pagead/ads?client=ca-video-pub-5512390705137507&slotname=9018911080/5952557309&ad_type=video&description_url=http%3A%2F%2Fkinoafisha.info&max_ad_duration=60000&videoad_start_delay=0',
             pathMediawayss = '//ad.mediawayss.com/delivery/impress?video=vast&pzoneid=823&ch=DOMAIN_HERE',
             pathUnion = '//s3.utraff.com/index.php?r=vmap/vast&host_id=1945&rand=' + curTime,
-            pathPladform = '//out.pladform.ru/getVast?pl=110461&type=&license=&thematic=&age=&duration=&dl=&target=adformat=',
+            pathPladform = '//out.pladform.ru/getVast?pl=110461&type=preroll&license=1&thematic=420&age=5&duration=180&dl='+ url +'&target=web-html5&adformat=1',
+            pathAdRiver= 'https://ad.adriver.ru/cgi-bin/rle.cgi?sid=1&bt=61&ad=657980&pid=2752474&bn=2752474&rnd='+ curTime +'&tuid=1',
+            pathAdRiverWrapper= '/static/vast/adRiverWrapper.xml?test',
             pathInVideo = function(){
                 var pidDesktop = 349,
                     pidIOS = 350,
@@ -289,7 +291,6 @@ var CombinedPlayer =  class {
 
                 //
                 return ('//instreamvideo.ru/core/vpaid/linear?pid='+ pid +'&vr=1&rid='+ curTime +'&puid7=1&puid8=15&puid10=4&puid11=1&puid12=16&dl='+ url +'&duration=&vn='+ url);
-
             }(),
 
             pathes = {
@@ -359,9 +360,23 @@ var CombinedPlayer =  class {
                 if(this.data.dev === 'inVideo') return pathInVideo;
                 if(this.data.dev === 'union') return pathUnion;
                 if(this.data.dev === 'pladform') return pathPladform;
+                if(this.data.dev === 'adRiver') return pathAdRiver;
+                if(this.data.dev === 'adRiverWrapper') return pathAdRiverWrapper;
 
                 //
                 //return pathes[Math.floor(Math.random() * (pathes.length))];
+
+                try{
+                    if(APP.vars.locationCityMain === 'nsk' ||
+                        APP.vars.locationCityMain === 'nn' ||
+                        APP.vars.locationCityMain === 'chel' ||
+                        APP.vars.locationCityMain === 'omsk' ||
+                        APP.vars.locationCityMain === 'ufa' ||
+                        APP.vars.locationCityMain === 'perm' ||
+                        APP.vars.locationCityMain === 'voronezh') {
+                        return pathAdRiver;
+                    }
+                } catch(e){};
 
                 return pathes[randomKey(priorities)];
             }(),
