@@ -485,8 +485,8 @@ var CombinedPlayer = (function () {
             pathMediawayss = '//ad.mediawayss.com/delivery/impress?video=vast&pzoneid=823&ch=DOMAIN_HERE',
             pathUnion = '//s3.utraff.com/index.php?r=vmap/vast&host_id=1945&rand=' + curTime,
             pathPladform = '//out.pladform.ru/getVast?pl=110461&type=preroll&license=1&thematic=420&age=5&duration=180&dl=' + url + '&target=web-html5&adformat=1',
-            pathAdRiver = 'https://ad.adriver.ru/cgi-bin/rle.cgi?sid=1&bt=61&ad=657980&pid=2752474&bn=2752474&rnd=' + curTime + '&tuid=1',
-            pathAdRiverWrapper = '/static/vast/adRiverWrapper.xml?test',
+            pathAdRiver = '//ad.adriver.ru/cgi-bin/rle.cgi?sid=1&bt=61&ad=657980&pid=2752474&bn=2752474&rnd=' + curTime + '&tuid=1',
+            pathAdRiverWrapper = '//api.kinoafisha.info/ad/vast/?bid=20180604_homecredit',
             pathInVideo = (function () {
             var pidDesktop = 349,
                 pidIOS = 350,
@@ -504,14 +504,16 @@ var CombinedPlayer = (function () {
             'Mediawayss': pathMediawayss,
             'InVideo': pathInVideo,
             'UnionTraff': pathUnion,
-            'Moevideo': pathMoevideo
+            'Moevideo': pathMoevideo,
+            'Pladform': pathPladform
         },
             priorities = {
-            'RCA': 54,
+            'RCA': 44,
             'Videonow': 13,
             'InVideo': 13,
             'UnionTraff': 10,
-            'Moevideo': 10
+            'Moevideo': 10,
+            'Pladform': 10
         },
             randomKey = function randomKey(data) {
             var randomArr = [];
@@ -569,7 +571,7 @@ var CombinedPlayer = (function () {
 
             try {
                 if (APP.vars.locationCityMain === 'nsk' || APP.vars.locationCityMain === 'nn' || APP.vars.locationCityMain === 'chel' || APP.vars.locationCityMain === 'omsk' || APP.vars.locationCityMain === 'ufa' || APP.vars.locationCityMain === 'perm' || APP.vars.locationCityMain === 'voronezh') {
-                    return pathAdRiver;
+                    return pathAdRiverWrapper;
                 }
             } catch (e) {};
 

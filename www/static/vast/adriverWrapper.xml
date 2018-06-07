@@ -1,0 +1,30 @@
+<VAST version="2.0">
+<Ad id="adsCompanyId">
+	<Wrapper>
+		<AdSystem>kinoafisha</AdSystem>
+		<VASTAdTagURI>
+			<![CDATA[
+				https://ad.adriver.ru/cgi-bin/rle.cgi?sid=1&bt=61&ad=657980&pid=2752474&bn=2752474&rnd=11111111111&tuid=1
+			]]>
+		</VASTAdTagURI>
+		<Creatives>
+			<Creative>
+				<Linear>
+					<TrackingEvents>
+						<Tracking event="start">
+							<![CDATA[
+								https://api.kinoafisha.info/ad/event/?bid=test&type=start
+							]]>
+						</Tracking>
+						<Tracking event="complete">
+							<![CDATA[
+								https://api.kinoafisha.info/ad/event/?bid=test&type=complete
+							]]>
+						</Tracking>
+					</TrackingEvents>
+				</Linear>
+			</Creative>
+		</Creatives>
+	</Wrapper>
+</Ad>
+</VAST>

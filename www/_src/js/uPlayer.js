@@ -10,7 +10,7 @@ export default function (root, doc){
         return uPlayer.all[param.name];
     }
 
-    uPlayer.all = {};
+    uPlayer.all = {}; 
 
     uPlayer.abortAll = function(cur){
       for (var name in uPlayer.all){
