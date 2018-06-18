@@ -493,10 +493,24 @@ var CombinedPlayer = (function () {
                 pidAndroid = 351,
                 pid = (function () {
                 if (!uPlayer.mobileAgent) return pidDesktop;else if (uPlayer.mobileAgent.system == 'IOS') return pidIOS;else return pidAndroid;
+            })(),
+                puid5 = (function () {
+                try {
+                    return '&puid5=' + self.data.inVideo.puid5;
+                } catch (e) {
+                    return '';
+                }
+            })(),
+                puid6 = (function () {
+                try {
+                    return '&puid6=' + self.data.inVideo.puid6;
+                } catch (e) {
+                    return '';
+                }
             })();
 
             //
-            return '//instreamvideo.ru/core/vpaid/linear?pid=' + pid + '&vr=1&rid=' + curTime + '&puid7=1&puid8=15&puid10=4&puid11=1&puid12=16&dl=' + url + '&duration=&vn=' + url;
+            return '//instreamvideo.ru/core/vpaid/linear?pid=' + pid + '&vr=1&rid=' + curTime + puid5 + puid6 + '&puid7=1&puid8=15&puid10=4&puid11=1&puid12=16&dl=' + url + '&duration=&vn=' + url;
         })(),
             pathes = {
             'RCA': pathYandex,

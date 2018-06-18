@@ -253,6 +253,7 @@ var CombinedPlayer =  class {
         this.wrapper.className = this.wrapper.className + ' js-active js-active-adv'; /* TODO переделать на общий прелоадер */
 
 
+
         var self = this,
             data = {}, /* урл, ссылка, статистика итд */
             curTime = new Date().getTime(),
@@ -287,10 +288,24 @@ var CombinedPlayer =  class {
                         if(!uPlayer.mobileAgent) return pidDesktop;
                         else if(uPlayer.mobileAgent.system == 'IOS') return pidIOS;
                         else return pidAndroid; 
+                    }(),
+                    puid5 = function(){
+                        try{
+                            return '&puid5=' + self.data.inVideo.puid5;
+                        }catch(e){
+                            return '';
+                        }
+                    }(),
+                    puid6 = function(){
+                        try{
+                            return '&puid6=' + self.data.inVideo.puid6;
+                        }catch(e){
+                            return '';
+                        }
                     }();
 
                 //
-                return ('//instreamvideo.ru/core/vpaid/linear?pid='+ pid +'&vr=1&rid='+ curTime +'&puid7=1&puid8=15&puid10=4&puid11=1&puid12=16&dl='+ url +'&duration=&vn='+ url);
+                return ('//instreamvideo.ru/core/vpaid/linear?pid='+ pid +'&vr=1&rid='+ curTime + puid5 + puid6 + '&puid7=1&puid8=15&puid10=4&puid11=1&puid12=16&dl='+ url +'&duration=&vn='+ url);
             }(),
 
             pathes = {
