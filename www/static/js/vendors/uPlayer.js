@@ -507,10 +507,27 @@ var CombinedPlayer = (function () {
                 } catch (e) {
                     return '';
                 }
+            })(),
+                puid7 = (function () {
+                return '&puid7=1';
+            })(),
+                puid8 = (function () {
+                /* TODO хронометраж контента */
+                return '&puid8=4';
+            })(),
+                puid10 = (function () {
+                /* Размер плеера */
+                var val;
+                try {
+                    if (APP.vars.isMobile) val = 0;else val = 1;
+                } catch (e) {
+                    val = 4;
+                }
+                return '&puid10=' + val;
             })();
 
             //
-            return '//instreamvideo.ru/core/vpaid/linear?pid=' + pid + '&vr=1&rid=' + curTime + puid5 + puid6 + '&puid7=1&puid8=15&puid10=4&puid11=1&puid12=16&dl=' + url + '&duration=&vn=' + url;
+            return '//instreamvideo.ru/core/vpaid/linear?pid=' + pid + '&vr=1&rid=' + curTime + puid5 + puid6 + puid7 + puid8 + puid10 + '&puid11=1&puid12=16&dl=' + url + '&duration=150&vn=' + url;
         })(),
             pathes = {
             'RCA': pathYandex,
@@ -583,11 +600,17 @@ var CombinedPlayer = (function () {
             //
             //return pathes[Math.floor(Math.random() * (pathes.length))];
 
-            try {
-                if (APP.vars.locationCityMain === 'nsk' || APP.vars.locationCityMain === 'nn' || APP.vars.locationCityMain === 'chel' || APP.vars.locationCityMain === 'omsk' || APP.vars.locationCityMain === 'ufa' || APP.vars.locationCityMain === 'perm' || APP.vars.locationCityMain === 'voronezh') {
+            /*try{
+                if(APP.vars.locationCityMain === 'nsk' || 
+                    APP.vars.locationCityMain === 'nn' ||
+                    APP.vars.locationCityMain === 'chel' ||
+                    APP.vars.locationCityMain === 'omsk' ||
+                    APP.vars.locationCityMain === 'ufa' ||
+                    APP.vars.locationCityMain === 'perm' ||
+                    APP.vars.locationCityMain === 'voronezh') {
                     return pathAdRiverWrapper;
                 }
-            } catch (e) {};
+            } catch(e){};*/
 
             return pathes[randomKey(priorities)];
         })(),
