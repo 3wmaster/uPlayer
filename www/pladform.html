@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html class="no-js ">
+<head>
+    <meta charset="utf-8">
+    <script>
+        (function(){
+            var html = document.documentElement,
+                    cls = html.className;
+
+            //
+            cls = cls.replace(/\s*no-js/, '');
+            html.className = cls;
+        })();
+    </script>
+
+    <title>Плеер</title>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width">
+
+    <link rel="stylesheet" href="/static/css/uPlayer.css" media="all">
+    <script src="/static/js/vendors/uPlayer.js?88"></script>
+</head>
+
+<body>
+    <div style="max-width:640px;margin:0 auto;">
+        <h2>InVideo</h2>
+        <div id="uPlayer"
+             data-param='{
+                "trailer_id":"9d14ec81b1f60f114b5d17f9dda80e60",
+                "host":"https://www.kinoafisha.info/movies/8163731/",
+                "bottom_vote":"false",
+                "cover":"/static/img/tmp/t97.jpg",
+                "allVideoLink":"https://www.kinoafisha.info/movies/8321273/video/",
+                "files":{"low":{"path":"https:\/\/video.kinoafisha.info\/video\/jiilsmsahbcnt4sz96cm.mp4"}},
+                "poster":"https:\/\/video.kinoafisha.info\/upload\/1447606101.07.jpg",
+                "trailer_url":"https:\/\/www.kinoafisha.info\/movies\/8154984\/video\/8133276\/",
+                "ads":{"puid5":4,"puid6":17, "puid7": 0, "agents":{"Pladform": 100}}
+            }' class="combinedPlayer"></div>
+    </div>
+
+<script>
+    uPlayer(document.getElementById('uPlayer'));
+</script>
+
+</body>
+</html>
+		
+						

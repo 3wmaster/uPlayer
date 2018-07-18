@@ -476,7 +476,7 @@ var CombinedPlayer = (function () {
             pathGoogleTest = '//ima3vpaid.appspot.com/?adTagUrl=http%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fad_type%3Dvideo%26client%3Dca-video-pub-4968145218643279%26videoad_start_delay%3D0%26description_url%3Dhttp%253A%252F%252Fwww.google.com%26hl%3Den%26max_ad_duration%3D30000%26adtest%3Don&type=js',
             pathBoosterTest = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
             pathBoosterTestPopcorn = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
-            pathBooster = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaUZ6TXNZWUpEQ283UWFTZXpXRG5LU2c9PQ==&autoplay=1&url=' + url,
+            pathBooster = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaUZ6TXNZWUpEQ283UWFTZXpXRG5LU2c9PQ==&url=' + url + '&autoplay=1&hideSkipButton=0&overroll=1',
             pathMoevideo = '//moevideo.biz/vast?ref=kinoafisha.info&impressionAfterPaid=1&es=1',
             pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
             pathWmg = '//an.facebook.com/v1/instream/vast.xml?placementid=TEST_PLACEMENT_ID&pageurl=http://www.google.com&maxaddurationms=30000',
@@ -484,7 +484,28 @@ var CombinedPlayer = (function () {
             pathOptAd3602 = '//googleads.g.doubleclick.net/pagead/ads?client=ca-video-pub-5512390705137507&slotname=9018911080/5952557309&ad_type=video&description_url=http%3A%2F%2Fkinoafisha.info&max_ad_duration=60000&videoad_start_delay=0',
             pathMediawayss = '//ad.mediawayss.com/delivery/impress?video=vast&pzoneid=823&ch=DOMAIN_HERE',
             pathUnion = '//s3.utraff.com/index.php?r=vmap/vast&host_id=1945&rand=' + curTime,
-            pathPladform = '//out.pladform.ru/getVast?pl=110461&type=preroll&license=1&thematic=420&age=5&duration=180&dl=' + url + '&target=web-html5&adformat=1',
+            pathPladform = (function () {
+            var pl = '110461',
+                type = 'preroll',
+                license = '1',
+                thematic = self.data.ads.puid5 + '' + self.data.ads.puid6,
+                age = self.data.ads.puid7,
+                duration = 150,
+                dl = url,
+                target = (function () {
+                var val;
+                try {
+                    if (APP.vars.isMobile) val = 'mobile';else val = 'web-html5';
+                } catch (e) {
+                    val = 'web-html5';
+                }
+                return val;
+            })(),
+                adformat = '1',
+                rand = curTime;
+
+            return '//out.pladform.ru/getVast?pl=' + pl + '&type=' + type + '&license=' + license + '&thematic=' + thematic + '&age=' + age + '&duration=' + duration + '&dl=' + dl + '&target=' + target + '&adformat=' + adformat;
+        })(),
             pathAdRiver = '//ad.adriver.ru/cgi-bin/rle.cgi?sid=1&bt=61&ad=657980&pid=2752474&bn=2752474&rnd=' + curTime + '&tuid=1',
             pathAdRiverWrapper = '//api.kinoafisha.info/ad/vast/?bid=20180604_homecredit',
             pathInVideo = (function () {
@@ -538,14 +559,17 @@ var CombinedPlayer = (function () {
             'Moevideo': pathMoevideo,
             'Pladform': pathPladform
         },
-            priorities = {
-            'RCA': 44,
-            'Videonow': 13,
-            'InVideo': 13,
-            'UnionTraff': 10,
-            'Moevideo': 10,
-            'Pladform': 10
-        },
+            agents = (function () {
+            if (self.data.ads.agents) return self.data.ads.agents;
+            return {
+                'RCA': 44,
+                'Videonow': 13,
+                'InVideo': 13,
+                'UnionTraff': 10,
+                'Moevideo': 10,
+                'Pladform': 10
+            };
+        })(),
             randomKey = function randomKey(data) {
             var randomArr = [];
 
@@ -612,7 +636,7 @@ var CombinedPlayer = (function () {
                 }
             } catch(e){};*/
 
-            return pathes[randomKey(priorities)];
+            return pathes[randomKey(agents)];
         })(),
             _getOur = function _getOur() {
             /* TODO пока отключил, чет не работает */
@@ -632,6 +656,8 @@ var CombinedPlayer = (function () {
             }
             else self._start.call(self);*/
         };
+
+        console.log('agents', agents);
 
         if (1 == 2) {
 
