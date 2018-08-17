@@ -149,7 +149,6 @@ class VASTTag {
 
 	_getAdTag(path, callback){
 		console.log('get ad tag');
-		path = path + '&rnd=' + new Date().getTime();
 		/* TODO почему то не работает */
 		//if(this.xhr) return; /* на всякий */
 		this.xhr = new XMLHttpRequest();
