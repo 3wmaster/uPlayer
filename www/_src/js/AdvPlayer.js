@@ -137,7 +137,7 @@ export default class{
 	_updateTimeCur(sec){
 		var leftTime = Math.floor(this.video.duration - sec),
 			text = leftTime ? ('Осталось ' + leftTime + 'сек') : '&nbsp;',
-			skipTime = Math.round(5 - sec);
+			skipTime = Math.round(this.data.skipoffset - sec);
 
 		this.advLeft.innerHTML = text;
 

@@ -24,11 +24,12 @@ class VASTTag {
 		}
 
 		this._getAdTag(path, (adTag) => {
+			/* TODO может быть несколько креативов 'Creative' итд В общем сделать нормальный разбор */
+
 			if(!adTag){
 				console.error('uPlayer', 'пустой тег или <nobanner></nobanner>');
 				this.param.onError();
-			}
-			else {
+			} else {
 				/* может быть как в WrapperAd так и в прямой рекламе */
 				var videoClicksTag = adTag.querySelector('VideoClicks'),
 					clickTrackingAll = videoClicksTag ? videoClicksTag.querySelectorAll('ClickTracking') : null,
@@ -56,6 +57,7 @@ class VASTTag {
 					else {
 						this.data.mediaFile = advFile.file;
 						if(advFile.type == 'mp4'){
+							this.data.skipoffset = this._getSkipoffset(adTag);
 							this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 							this.param.onVast(this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
 						}
@@ -179,6 +181,21 @@ class VASTTag {
 
 	_getAdURI(tag){
 		return tag.querySelector('VASTAdTagURI').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+	}
+
+	_getSkipoffset(tag){
+		var skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
+		if(!skipoffset) return 5;
+
+		//
+		if(skipoffset.indexOf('%') === -1){
+			var arr = skipoffset.split(':');
+			var seconds = arr[0] * 60 * 60 + arr[1] * 60 + arr[2]*1;
+			return seconds;
+		} else {
+			/* TODO % */
+			return 5;
+		}
 	}
 }
 export {VASTTag}

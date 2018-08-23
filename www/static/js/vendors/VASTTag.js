@@ -35,6 +35,8 @@ var VASTTag = (function () {
 		}
 
 		this._getAdTag(path, function (adTag) {
+			/* TODO может быть несколько креативов 'Creative' итд В общем сделать нормальный разбор */
+
 			if (!adTag) {
 				console.error('uPlayer', 'пустой тег или <nobanner></nobanner>');
 				_this.param.onError();
@@ -63,6 +65,7 @@ var VASTTag = (function () {
 					} else {
 						_this.data.mediaFile = advFile.file;
 						if (advFile.type == 'mp4') {
+							_this.data.skipoffset = _this._getSkipoffset(adTag);
 							_this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 							_this.param.onVast(_this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
 						} else {
@@ -192,6 +195,21 @@ var VASTTag = (function () {
 
 	VASTTag.prototype._getAdURI = function _getAdURI(tag) {
 		return tag.querySelector('VASTAdTagURI').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+	};
+
+	VASTTag.prototype._getSkipoffset = function _getSkipoffset(tag) {
+		var skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
+		if (!skipoffset) return 5;
+
+		//
+		if (skipoffset.indexOf('%') === -1) {
+			var arr = skipoffset.split(':');
+			var seconds = arr[0] * 60 * 60 + arr[1] * 60 + arr[2] * 1;
+			return seconds;
+		} else {
+			/* TODO % */
+			return 5;
+		}
 	};
 
 	return VASTTag;

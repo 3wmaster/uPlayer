@@ -126,7 +126,7 @@ var _default = (function () {
 	_default.prototype._updateTimeCur = function _updateTimeCur(sec) {
 		var leftTime = Math.floor(this.video.duration - sec),
 		    text = leftTime ? 'Осталось ' + leftTime + 'сек' : '&nbsp;',
-		    skipTime = Math.round(5 - sec);
+		    skipTime = Math.round(this.data.skipoffset - sec);
 
 		this.advLeft.innerHTML = text;
 
@@ -478,15 +478,20 @@ var CombinedPlayer = (function () {
             pathVastGoogleTest = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
 
         //Можно использовать даже боевой тег, добавив в него параметры- вот так http://data.videonow.ru/?profile_id=695851&format=vast&vpaid=1&flash=0 - отдается наш JS-VPID
-        pathVideonowTest = 'https://data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
-            pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
+        pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
             pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=' + curTime,
             pathGoogleTest = '//ima3vpaid.appspot.com/?adTagUrl=http%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fad_type%3Dvideo%26client%3Dca-video-pub-4968145218643279%26videoad_start_delay%3D0%26description_url%3Dhttp%253A%252F%252Fwww.google.com%26hl%3Den%26max_ad_duration%3D30000%26adtest%3Don&type=js',
             pathBoosterTest = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
             pathBoosterTestPopcorn = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
             pathBooster = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaUZ6TXNZWUpEQ283UWFTZXpXRG5LU2c9PQ==&url=' + url + '&autoplay=1&hideSkipButton=0&overroll=1' + '&rnd=' + curTime,
             pathMoevideo = '//moevideo.biz/vast?ref=kinoafisha.info&impressionAfterPaid=1&es=1' + '&rnd=' + curTime,
-            pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0' + '&rnd=' + curTime,
+            pathVideonow = (function () {
+            var uid = 695851;
+            try {
+                if (APP.vars.isMobile) uid = '3278726';
+            } catch (e) {}
+            return '//data.videonow.ru/?profile_id=' + uid + '&format=vast&container=preroll' + '&rnd=' + curTime;
+        })(),
             pathWmg = '//an.facebook.com/v1/instream/vast.xml?placementid=TEST_PLACEMENT_ID&pageurl=http://www.google.com&maxaddurationms=30000' + '&rnd=' + curTime,
             pathOptAd360 = '//ima3vpaid.appspot.com/?adTagUrl=https%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fclient%3Dca-video-pub-5512390705137507%26slotname%3D9018911080%2F5952557309%26ad_type%3Dvideo%26description_url%3Dhttp%253A%252F%252Fkinoafisha.info%26max_ad_duration%3D60000%26videoad_start_delay%3D0&type=js' + '&rnd=' + curTime,
             pathOptAd3602 = '//googleads.g.doubleclick.net/pagead/ads?client=ca-video-pub-5512390705137507&slotname=9018911080/5952557309&ad_type=video&description_url=http%3A%2F%2Fkinoafisha.info&max_ad_duration=60000&videoad_start_delay=0' + '&rnd=' + curTime,
@@ -637,7 +642,6 @@ var CombinedPlayer = (function () {
             if (_this2.data.dev) {
                 if (_this2.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
                 if (_this2.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
-                if (_this2.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
                 if (_this2.data.dev === 'yandex') return pathYandex;
                 if (_this2.data.dev === 'google-test') return pathGoogleTest;
                 if (_this2.data.dev === 'booster') return pathBooster;
@@ -724,7 +728,7 @@ var CombinedPlayer = (function () {
             /* TODO Отправдляем нашу стату - какой агент пробует показать рекламу */
             var image = document.createElement('IMG'),
                 path = window.location.hostname.indexOf('kinoafishaspb.ru') === -1 ? 'kinoafisha.info' : 'kinoafishaspb.ru';
-            image.src = 'https://api.' + path + '/player/statad/?sourse=' + agent;
+            image.src = 'https://api.' + path + '/player/statad/?source=' + agent;
             image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
             document.body.appendChild(image);
         }
@@ -1778,6 +1782,8 @@ var VASTTag = (function () {
 		}
 
 		this._getAdTag(path, function (adTag) {
+			/* TODO может быть несколько креативов 'Creative' итд В общем сделать нормальный разбор */
+
 			if (!adTag) {
 				console.error('uPlayer', 'пустой тег или <nobanner></nobanner>');
 				_this.param.onError();
@@ -1806,6 +1812,7 @@ var VASTTag = (function () {
 					} else {
 						_this.data.mediaFile = advFile.file;
 						if (advFile.type == 'mp4') {
+							_this.data.skipoffset = _this._getSkipoffset(adTag);
 							_this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 							_this.param.onVast(_this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
 						} else {
@@ -1935,6 +1942,21 @@ var VASTTag = (function () {
 
 	VASTTag.prototype._getAdURI = function _getAdURI(tag) {
 		return tag.querySelector('VASTAdTagURI').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+	};
+
+	VASTTag.prototype._getSkipoffset = function _getSkipoffset(tag) {
+		var skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
+		if (!skipoffset) return 5;
+
+		//
+		if (skipoffset.indexOf('%') === -1) {
+			var arr = skipoffset.split(':');
+			var seconds = arr[0] * 60 * 60 + arr[1] * 60 + arr[2] * 1;
+			return seconds;
+		} else {
+			/* TODO % */
+			return 5;
+		}
 	};
 
 	return VASTTag;
