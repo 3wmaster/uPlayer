@@ -485,6 +485,7 @@ var CombinedPlayer = (function () {
             pathBoosterTestPopcorn = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
             pathBooster = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaUZ6TXNZWUpEQ283UWFTZXpXRG5LU2c9PQ==&url=' + url + '&autoplay=1&hideSkipButton=0&overroll=1' + '&rnd=' + curTime,
             pathMoevideo = '//moevideo.biz/vast?ref=kinoafisha.info&impressionAfterPaid=1&es=1' + '&rnd=' + curTime,
+            pathMoevideo2 = '//ad.adriver.ru/cgi-bin/erle.cgi?sid=219765&bt=61&pz=0&bn=19&target=top&rnd=' + curTime + '&tuid=1',
             pathVideonow = (function () {
             var uid = 695851;
             try {
@@ -564,6 +565,7 @@ var CombinedPlayer = (function () {
         })(),
             pathAdbetnet = '//adbetnet.advertserve.com/servlet/vast3/zone?zid=4918&pid=1291&rnd=' + curTime,
             pathMarketPlace = '//widget.market-place.su/videovast/1574.xml?rnd=' + curTime,
+            pathVihub = '//vast.vihub.ru/?plid=1176&startdelay=0&ref=' + url,
             pathes = {
             'RCA': pathYandex,
             'Videonow': pathVideonow,
@@ -573,7 +575,8 @@ var CombinedPlayer = (function () {
             'Moevideo': pathMoevideo,
             'Pladform': pathPladform,
             'Booster': pathBooster,
-            'MarketPlace': pathMarketPlace
+            'MarketPlace': pathMarketPlace,
+            'Vihub': pathVihub
         },
             agents = (function () {
             if (self.data.ads.agents) {
@@ -581,27 +584,22 @@ var CombinedPlayer = (function () {
                 return self.data.ads.agents;
             }
             if (self.data.youtube) {
-                console.log('data.youtube');
                 return {
-                    'RCA': 40,
+                    'RCA': 50,
                     'Videonow': 10,
                     'InVideo': 10,
                     'UnionTraff': 10,
                     'Moevideo': 10,
-                    'Booster': 10,
-                    'MarketPlace': 10
+                    'Booster': 10
                 };
             } else {
-                console.log('data.other');
                 return {
-                    'RCA': 30,
+                    'RCA': 50,
                     'Videonow': 10,
                     'InVideo': 10,
                     'UnionTraff': 10,
                     'Moevideo': 10,
-                    'Pladform': 10,
-                    'Booster': 10,
-                    'MarketPlace': 10
+                    'Booster': 10
                 };
             }
         })(),
@@ -647,6 +645,7 @@ var CombinedPlayer = (function () {
                 if (_this2.data.dev === 'booster') return pathBooster;
                 if (_this2.data.dev === 'booster? -popcorn') return pathBoosterTestPopcorn;
                 if (_this2.data.dev === 'moevideo') return pathMoevideo;
+                if (_this2.data.dev === 'moevideo2') return pathMoevideo2;
                 if (_this2.data.dev === 'videonow') return pathVideonow;
                 if (_this2.data.dev === 'wmg') return pathWmg;
                 if (_this2.data.dev === 'optAd360') return pathOptAd360;
