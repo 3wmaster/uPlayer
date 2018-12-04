@@ -1,15 +1,13 @@
 var VpaidPlayer =  class {
 	constructor(oUPlayer, vast) {
 		this._createElements(oUPlayer, vast);
-		this._load();
+        this._insertVideoTag();
+        this._load();
 	}
 
 	_getHtml(){
-		return '<div data-js="adv-player" class="advPlayer">'+
-				'<video data-js="adv-video" class="advPlayer_video"></video>'+
-				'<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>'+
-			'</div>';
-	}
+        return '<div data-js="adv-player" class="advPlayer">' + '<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
+    }
 
 	_createElements(oUPlayer, vast){
 		this.oUPlayer = oUPlayer;
@@ -17,24 +15,38 @@ var VpaidPlayer =  class {
 		this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="adv"]');
 		this.insert.innerHTML = this._getHtml();
 		this.wrapper =  this.insert.firstChild;
-		this.video = this.wrapper.querySelector('[data-js="adv-video"]');
+        this.video = oUPlayer.initVideo;
 		this.slot = this.wrapper.querySelector('[data-js="vpaid-slot"]');
-		this.vpaid = false;
+        this.vpaid = false;this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
 		this.isAdClickThru = false /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
+	}
+
+	_insertVideoTag(){
+        this.video.removeAttribute('style');
+        this.video.className = 'advPlayer_video';
+        this.wrapper.insertBefore(this.video, this.slot);
 	}
 
 	_load(){
 		this.loadScriptInIFrame(this.vast.mediaFile, (iframe) => {
 			var rect = this.insert.getBoundingClientRect();
 
+            if (!iframe.contentWindow.getVPAIDAd) {
+                /* связано с загрузкой ифрейм и переменной inDapIF */
+                console.error('iframe.contentWindow.getVPAIDAd отсутствует');
+                _this.del();
+                _this.oUPlayer._start();
+                return;
+            }
+
 			this.vpaid = iframe.contentWindow.getVPAIDAd();
 
 			this.vpaid.subscribe(() => {
 				console.log("uPlayer: VPAID событие AdLoaded (реклама загружена)");
 				this.isAdLoaded = true;
-				this.oUPlayer._checkInitPlayers();
+				this.oUPlayer._start();
 				//vpaid.startAd();
 			}, "AdLoaded");
 
@@ -115,31 +127,36 @@ var VpaidPlayer =  class {
 
 	start(data){ /* TODO сейчас данные никакие не передаются, а сохраняются при инициализции плеера. Пока не знаю как лучше будет */
 		var self = this;
-		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+        this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active'; /* TODO */
 		this.vpaid.startAd();
 	}
 
-	_finish(){ /* если пользователь щелкнул на рекламу - все останавливаем и дальше не продолжаем*/
-		//может срабатывать несколько раз, при AdStopped, AdError; TODO - мож покороче как нить..
-		if(this.isFinish) return;
-		this.isFinish = true;
+	_finish(){
+        /* если пользователь щелкнул на рекламу - все останавливаем и дальше не продолжаем*/
+        //может срабатывать несколько раз, например, сначала срабатывает AdSkipped, а затем при AdStopped для поддержки видеоплееров с использованием более ранней версии VPAID
+        // TODO - мож покороче как нить..
 
-		if(!this.isAdLoaded){
-			this.oUPlayer._checkInitPlayers();
-			this.del();
-		}
-		else {
-			var oUPlayer = this.oUPlayer;
+        if (this.isFinish) return;
+        this.isFinish = true;
 
-			if(this.isAdClickThru) { /* был клик по рекламе */
-				this.oUPlayer._returnOriginalView('oVpaidPlayer');
-			}
-			else {
-				if(oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();
-				else oUPlayer.oHTMLPlayer.start();
-				oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
-			}
-		}
+        this.oUPlayer.isShowAdv = false; /* TODO ??  */
+
+        console.log('this.isAdLoaded', this.isAdLoaded);
+
+        if (!this.isAdLoaded) {
+            this.oUPlayer._start();
+            this.del();
+        } else {
+            var oUPlayer = this.oUPlayer;
+
+            if (this.isAdClickThru) {
+                /* был клик по рекламе, видео не запускаем, потому что в этот момент пользователь может смотреть рекламу */
+                this.oUPlayer._returnOriginalView('oVpaidPlayer');
+            } else {
+                if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
+                oUPlayer.wrapper.className = oUPlayer.wrapper.className.replace(' js-active-adv', ' js-active-video');
+            }
+        }
 	}
 
 	_sendStat(arr, name) {/* везде сделано по разному, нужно как здесь, наверное  */
@@ -168,7 +185,8 @@ var VpaidPlayer =  class {
 
 		iframe.onload = function()
 		{
-			//iframe.contentWindow.inDapIF = true; TODO wmg
+            //TODO wmg
+            iframe.contentWindow.inDapIF = true;
 			var script = document.createElement("script");
 			script.type = "text/javascript";
 			script.onload = function() {

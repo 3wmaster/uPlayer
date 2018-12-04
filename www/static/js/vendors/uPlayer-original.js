@@ -230,7 +230,7 @@ var _jsHTMLPlayer2 = _interopRequireDefault(_jsHTMLPlayer);
 
 var _jsAdvPlayer = require('../js/AdvPlayer');
 
-var _jsAdvPlayer3 = _interopRequireDefault(_jsAdvPlayer);
+var _jsAdvPlayer2 = _interopRequireDefault(_jsAdvPlayer);
 
 var _jsYoutubePlayer = require('../js/YoutubePlayer');
 
@@ -240,7 +240,7 @@ var _jsScriptonload = require('../js/scriptonload');
 
 var _jsVASTTag = require('../js/VASTTag');
 
-//import {IMA} from '../js/IMA';
+var _jsIMA = require('../js/IMA');
 
 var CombinedPlayer = (function () {
     function CombinedPlayer(wrapper, param) {
@@ -266,6 +266,7 @@ var CombinedPlayer = (function () {
 
     CombinedPlayer.prototype._initPlayers = function _initPlayers() {
         var self = this;
+
         if (this.data.youtube) this._getYoutubeData();else this._getHtmlData(); /* TODO теперь не нужно - данные сразу в разметку теперь вставляются */
     };
 
@@ -393,27 +394,12 @@ var CombinedPlayer = (function () {
         if (this.onActive) this.onActive();
     };
 
-    CombinedPlayer.prototype._returnOriginalView = function _returnOriginalView(playerName) {
+    CombinedPlayer.prototype._returnOriginalView = function _returnOriginalView(name) {
         /* TODO больше не удаляем плееры */
         this.wrapper.className = this.wrapper.className.replace(/ js-active(-video|-adv)*/g, '');
-        //this[playerName].del();
+        //this[name].del();
         //delete this[name];
         if (this.onDisableActive) this.onDisableActive();
-        this._sendEventMessage('ended', playerName);
-    };
-
-    CombinedPlayer.prototype._onFullscreen = function _onFullscreen(playerName) {
-        this._sendEventMessage('fullscreenOn', playerName);
-    };
-
-    CombinedPlayer.prototype._onFullscreenExit = function _onFullscreenExit(playerName) {
-        this._sendEventMessage('fullscreenOff', playerName);
-    };
-
-    CombinedPlayer.prototype._sendEventMessage = function _sendEventMessage(eventName, playerName) {
-        try {
-            window.top.postMessage(JSON.stringify({ "uPLayer": true, "event": eventName }), "*");
-        } catch (e) {}
     };
 
     CombinedPlayer.prototype._sendStat = function _sendStat(persent) {
@@ -483,8 +469,7 @@ var CombinedPlayer = (function () {
 
         var self = this,
             data = {},
-
-        /* урл, ссылка, статистика итд */
+            /* урл, ссылка, статистика итд */
         curTime = new Date().getTime(),
             advInterval = 24,
             url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
@@ -670,7 +655,7 @@ var CombinedPlayer = (function () {
             //return pathes[Math.floor(Math.random() * (pathes.length))];
 
             /*try{
-                if(APP.vars.locationCityMain === 'nsk' ||
+                if(APP.vars.locationCityMain === 'nsk' || 
                     APP.vars.locationCityMain === 'nn' ||
                     APP.vars.locationCityMain === 'chel' ||
                     APP.vars.locationCityMain === 'omsk' ||
@@ -825,7 +810,7 @@ var CombinedPlayer = (function () {
 //
 exports.CombinedPlayer = CombinedPlayer;
 
-},{"../js/AdvPlayer":1,"../js/HTMLPlayer":3,"../js/VASTTag":5,"../js/VpaidPlayer":6,"../js/YoutubePlayer":7,"../js/event":8,"../js/scriptRequest":9,"../js/scriptonload":10}],3:[function(require,module,exports){
+},{"../js/AdvPlayer":1,"../js/HTMLPlayer":3,"../js/IMA":4,"../js/VASTTag":6,"../js/VpaidPlayer":7,"../js/YoutubePlayer":8,"../js/event":9,"../js/scriptRequest":10,"../js/scriptonload":11}],3:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -921,7 +906,6 @@ var _default = (function () {
 		this.isCanPlay = true; //можем проигрывать или нет. Если нет - будет грузиться флеш
 		this.keyFrameAll; //массив времени в %  когда отпраляется стата - 0% 50% 90% 100%
 		this.isAutoPlay = true; //теперь постер отдельно и при вызове объекта сразу начинаем проигрывание
-		this.isFullscreenMode = false; /* отслеживаем, этот ли плеер находится в полноэкранном режиме */
 	};
 
 	_default.prototype._resetStat = function _resetStat() {
@@ -1314,15 +1298,7 @@ var _default = (function () {
 
 		document['on' + eName] = function (event) {
 			event.preventDefault();
-			if (self.wrapper === document[fullscreenElement]) {
-				self._showFullscreen.call(self);
-				self.isFullscreenMode = true;
-				self.oUPlayer._onFullscreen('HTML');
-			} else if (self.isFullscreenMode === true) {
-				self._hideFullscreen.call(self);
-				self.isFullscreenMode = false;
-				self.oUPlayer._onFullscreenExit('HTML');
-			}
+			if (document[fullscreenElement]) self._showFullscreen.call(self);else self._hideFullscreen.call(self);
 		};
 
 		this.fullscreenRequest.onclick = function () {
@@ -1462,7 +1438,154 @@ var _default = (function () {
 exports['default'] = _default;
 module.exports = exports['default'];
 
-},{"../js/Meter":4}],4:[function(require,module,exports){
+},{"../js/Meter":5}],4:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _jsScriptonload = require('../js/scriptonload');
+
+var IMA = (function () {
+	function IMA(param) {
+		_classCallCheck(this, IMA);
+
+		this._declare(param);
+		this._insertVideoTag();
+		this._run();
+
+		/*scriptonload(['//imasdk.googleapis.com/js/sdkloader/ima3.js'], () => {
+  		});*/
+	}
+
+	IMA.prototype._getHtml = function _getHtml() {
+		return '<div data-js="adv-player" class="advPlayer">' + '<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
+	};
+
+	IMA.prototype._declare = function _declare(param) {
+		this.param = param;
+		this.oUPlayer = this.param.oUPlayer;
+		this.path = this.param.path;
+		this.insert = this.oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="adv"]');
+		this.insert.innerHTML = this._getHtml();
+		this.wrapper = this.insert.firstChild;
+		this.video = this.oUPlayer.initVideo;
+		this.slot = this.wrapper.querySelector('[data-js="vpaid-slot"]');
+	};
+
+	IMA.prototype._insertVideoTag = function _insertVideoTag() {
+		this.video.removeAttribute('style');
+		this.video.className = 'advPlayer_video';
+		this.wrapper.insertBefore(this.video, this.slot);
+	};
+
+	IMA.prototype._run = function _run() {
+		/*
+  	google
+   https://developers.google.com/interactive-media-ads/docs/sdks/html5/
+   */
+
+		/* for code */
+		var adContainer = this.slot;
+		var videoContent = this.video;
+		var adsManager;
+		var self = this;
+
+		var adDisplayContainer = new google.ima.AdDisplayContainer(adContainer, videoContent);
+
+		// Must be done as the result of a user action on mobile
+		adDisplayContainer.initialize();
+
+		// Re-use this AdsLoader instance for the entire lifecycle of your page.
+		var adsLoader = new google.ima.AdsLoader(adDisplayContainer);
+
+		// Add event listeners
+		adsLoader.addEventListener(google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED, onAdsManagerLoaded, false);
+		adsLoader.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, onAdError, false);
+
+		function onAdError(adErrorEvent) {
+			// Handle the error logging and destroy the AdsManager
+			console.log('Uplayer', 'IMA error - ' + adErrorEvent.getError());
+			try {
+				adsManager.destroy();
+			} catch (e) {};
+			self.param.onError();
+		}
+
+		// An event listener to tell the SDK that our content video
+		// is completed so the SDK can play any post-roll ads.
+		var contentEndedListener = function contentEndedListener() {
+			adsLoader.contentComplete();
+		};
+		videoContent.onended = contentEndedListener;
+
+		// Request video ads.
+		var adsRequest = new google.ima.AdsRequest();
+		adsRequest.adTagUrl = '//googleads.g.doubleclick.net/pagead/ads?ad_type=video&client=ca-video-pub-4968145218643279&videoad_start_delay=0&description_url=http%3A%2F%2Fwww.google.com&max_ad_duration=40000&adtest=on';
+		adsRequest.adTagUrl = 'https://googleads.g.doubleclick.net/pagead/ads?ad_type=skippablevideo&client=ca-video-pub-3605597367359598&description_url=http%3A%2F%2Fkinoafisha.info&videoad_start_delay=0&hl=ru';
+		//adsRequest.adTagUrl = '//pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=';
+
+		// Specify the linear and nonlinear slot sizes. This helps the SDK to
+		// select the correct creative if multiple are returned.
+		adsRequest.linearAdSlotWidth = 1200;
+		adsRequest.linearAdSlotHeight = 600;
+
+		//var playButton = document.getElementById('playButton');
+		//playButton.addEventListener('click', requestAds);
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active'; /* TODO */
+		requestAds();
+
+		function requestAds() {
+			adsLoader.requestAds(adsRequest);
+		}
+
+		function onAdsManagerLoaded(adsManagerLoadedEvent) {
+			// Get the ads manager.
+			adsManager = adsManagerLoadedEvent.getAdsManager(videoContent); // See API reference for contentPlayback
+
+			// Add listeners to the required events.
+			adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, onAdError);
+			adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, onContentPauseRequested);
+			adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, onContentResumeRequested);
+			adsManager.addEventListener(google.ima.AdEvent.Type.ALL_ADS_COMPLETED, function () {
+				self.oUPlayer.onAdsCompleted.call(self.oUPlayer);
+			});
+
+			try {
+				// Initialize the ads manager. Ad rules playlist will start at this time.
+				adsManager.init(640, 360, google.ima.ViewMode.NORMAL);
+				// Call start to show ads. Single video and overlay ads will
+				// start at this time; this call will be ignored for ad rules, as ad rules
+				// ads start when the adsManager is initialized.
+				adsManager.start();
+			} catch (adError) {
+				// An error may be thrown if there was a problem with the VAST response.
+				this.param.onError();
+			}
+		}
+
+		function onContentPauseRequested() {
+			// This function is where you should setup UI for showing ads (e.g.
+			// display ad timer countdown, disable seeking, etc.)
+			videoContent.removeEventListener('ended', contentEndedListener);
+			videoContent.pause();
+		}
+
+		function onContentResumeRequested() {
+			// This function is where you should ensure that your UI is ready
+			// to play content.
+			videoContent.addEventListener('ended', contentEndedListener);
+			videoContent.play();
+		}
+	};
+
+	return IMA;
+})();
+
+exports.IMA = IMA;
+
+},{"../js/scriptonload":11}],5:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1612,14 +1735,12 @@ exports['default'] = _default;
 ;
 module.exports = exports['default'];
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-var _jsScriptonload = require('../js/scriptonload');
 
 var VASTTag = (function () {
 	function VASTTag(param) {
@@ -1833,7 +1954,7 @@ var VASTTag = (function () {
 
 exports.VASTTag = VASTTag;
 
-},{"../js/scriptonload":10}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -1862,6 +1983,7 @@ var VpaidPlayer = (function () {
 		this.video = oUPlayer.initVideo;
 		this.slot = this.wrapper.querySelector('[data-js="vpaid-slot"]');
 		this.vpaid = false;this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
+
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
 		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
@@ -1874,10 +1996,10 @@ var VpaidPlayer = (function () {
 	};
 
 	VpaidPlayer.prototype._load = function _load() {
-		var _this2 = this;
+		var _this = this;
 
 		this.loadScriptInIFrame(this.vast.mediaFile, function (iframe) {
-			var rect = _this2.insert.getBoundingClientRect();
+			var rect = _this.insert.getBoundingClientRect();
 
 			if (!iframe.contentWindow.getVPAIDAd) {
 				/* связано с загрузкой ифрейм и переменной inDapIF */
@@ -1887,85 +2009,85 @@ var VpaidPlayer = (function () {
 				return;
 			}
 
-			_this2.vpaid = iframe.contentWindow.getVPAIDAd();
+			_this.vpaid = iframe.contentWindow.getVPAIDAd();
 
-			_this2.vpaid.subscribe(function () {
+			_this.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdLoaded (реклама загружена)");
-				_this2.isAdLoaded = true;
-				_this2.oUPlayer._start();
+				_this.isAdLoaded = true;
+				_this.oUPlayer._start();
 				//vpaid.startAd();
 			}, "AdLoaded");
 
-			_this2.vpaid.subscribe(function () {
-				console.log('uPlayer: VPAID событие AdStarted (реклама запущена)', _this2.vast.statEventAll.creativeView);
-				_this2._sendStat(_this2.vast.statEventAll.creativeView, 'AdStarted');
+			_this.vpaid.subscribe(function () {
+				console.log('uPlayer: VPAID событие AdStarted (реклама запущена)', _this.vast.statEventAll.creativeView);
+				_this._sendStat(_this.vast.statEventAll.creativeView, 'AdStarted');
 			}, "AdStarted");
 
-			_this2.vpaid.subscribe(function () {
+			_this.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdImpression (начало реального просмотра)");
-				_this2._sendStat(_this2.vast.impressionAll, 'impression');
+				_this._sendStat(_this.vast.impressionAll, 'impression');
 			}, "AdImpression");
 
-			_this2.vpaid.subscribe(function () {
+			_this.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdVideoStart (старт рекламного видео)");
-				_this2._sendStat(_this2.vast.statEventAll['0'], 'start');
+				_this._sendStat(_this.vast.statEventAll['0'], 'start');
 			}, "AdVideoStart");
 
-			_this2.vpaid.subscribe(function () {
+			_this.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdVideoFirstQuartile (просмотрена первая четверть)");
-				_this2._sendStat(_this2.vast.statEventAll['25'], 'firstQuartile');
+				_this._sendStat(_this.vast.statEventAll['25'], 'firstQuartile');
 			}, "AdVideoFirstQuartile");
 
-			_this2.vpaid.subscribe(function () {
+			_this.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdVideoMidpoint (просмотрена вторая четверть)");
-				_this2._sendStat(_this2.vast.statEventAll['50'], 'midpoint');
+				_this._sendStat(_this.vast.statEventAll['50'], 'midpoint');
 			}, "AdVideoMidpoint");
 
-			_this2.vpaid.subscribe(function () {
+			_this.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdVideoThirdQuartile (просмотрена третья четверть)");
-				_this2._sendStat(_this2.vast.statEventAll['75'], 'thirdQuartile');
+				_this._sendStat(_this.vast.statEventAll['75'], 'thirdQuartile');
 			}, "AdVideoThirdQuartile");
 
-			_this2.vpaid.subscribe(function () {
+			_this.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdVideoComplete (просмотрена четвертая четверть)");
-				_this2._sendStat(_this2.vast.statEventAll['100'], 'complete');
+				_this._sendStat(_this.vast.statEventAll['100'], 'complete');
 			}, "AdVideoComplete");
 
-			_this2.vpaid.subscribe(function () {
+			_this.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdStopped (Показ рекламы окончен)");
-				_this2._finish();
+				_this._finish();
 			}, "AdStopped");
 
-			_this2.vpaid.subscribe(function (url, uid, playerHandles) {
+			_this.vpaid.subscribe(function (url, uid, playerHandles) {
 				console.log('uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)');
-				_this2._sendStat(_this2.vast.clickTrackingAll, 'clickTracking');
+				_this._sendStat(_this.vast.clickTrackingAll, 'clickTracking');
 				if (playerHandles) {
-					_this2.isAdClickThru = true;
+					_this.isAdClickThru = true;
 					//this._finish(true);
 					window.open(url);
 				}
 			}, "AdClickThru");
 
-			_this2.vpaid.subscribe(function () {
+			_this.vpaid.subscribe(function () {
 				console.log("VPAID: Реклама пропущена пользователем (AdSkipped)");
-				_this2._finish();
+				_this._finish();
 			}, "AdSkipped");
 
-			_this2.vpaid.subscribe(function () {
+			_this.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdUserClose (реклама закрыта пользователем)");
-				_this2._finish();
+				_this._finish();
 			}, "AdUserClose");
 
-			_this2.vpaid.subscribe(function (data) {
+			_this.vpaid.subscribe(function (data) {
 				console.log("uPlayer: VPAID событие AdError (Ошибка показа рекламы)");
-				_this2._finish();
+				_this._finish();
 			}, "AdError");
 
-			_this2.vpaid.initAd(rect.width, rect.height, "normal", 0, {
-				AdParameters: _this2.vast.AdParameters
+			_this.vpaid.initAd(rect.width, rect.height, "normal", 0, {
+				AdParameters: _this.vast.AdParameters
 			}, {
-				slot: _this2.slot,
-				videoSlot: _this2.video,
+				slot: _this.slot,
+				videoSlot: _this.video,
 				videoSlotCanAutoPlay: false //передавать true или false в зависимости от возможности программного автозапуска для данного элемента video
 			});
 		});
@@ -2067,7 +2189,7 @@ var VpaidPlayer = (function () {
 
 exports.VpaidPlayer = VpaidPlayer;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2081,7 +2203,6 @@ var YoutubePlayer = (function () {
         this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="video"]');
         this.insert.innerHTML = '<iframe class="combinedPlayer_youtube" src="' + oUPlayer.data.youtube + '?enablejsapi=1" allowfullscreen="" frameborder="0"></iframe>';
         this.youtubeIframe = this.insert.firstChild;
-        this.isFullscreenMode = false; /* отслеживаем, этот ли плеер находится в полноэкранном режиме */
         var self = this;
 
         this.oUPlayer = oUPlayer;
@@ -2093,33 +2214,6 @@ var YoutubePlayer = (function () {
                 'onStateChange': function onStateChange(event) {
                     self._onPlayerStateChange.call(self, event);
                 }
-            }
-        });
-
-        var eName = (function (doc) {
-            if ('onfullscreenchange' in doc) return 'fullscreenchange';
-            if ('onmozfullscreenchange' in doc) return 'mozfullscreenchange';
-            if ('onwebkitfullscreenchange' in doc) return 'webkitfullscreenchange';
-            if ('onmsfullscreenchange' in doc) return 'msfullscreenchange'; //MSFullscreenChange
-            return false;
-        })(document);
-
-        var fullscreenElement = (function (doc) {
-            if ('fullscreenElement' in doc) return 'fullscreenElement';
-            if ('mozFullScreenElement' in doc) return 'mozFullScreenElement';
-            if ('webkitFullscreenElement' in doc) return 'webkitFullscreenElement';
-            if ('msFullscreenElement' in doc) return 'msFullscreenElement';
-            return false;
-        })(document);
-
-        document.addEventListener(eName, function (e) {
-            if (document[fullscreenElement] == self.youtubeIframe) {
-                self.isFullscreenMode = true;
-                oUPlayer._onFullscreen('youtube');
-            } else if (self.isFullscreenMode === true) {
-                //этот плеер находился в полноэкранном режиме
-                self.isFullscreenMode = false;
-                oUPlayer._onFullscreenExit('youtube');
             }
         });
     }
@@ -2164,7 +2258,7 @@ var YoutubePlayer = (function () {
 //
 exports.YoutubePlayer = YoutubePlayer;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -2281,7 +2375,7 @@ var event = (function () {
 
 exports.event = event;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2336,7 +2430,7 @@ var scriptRequest = function scriptRequest(url, onSuccess, onError) {
 
 exports.scriptRequest = scriptRequest;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -2412,4 +2506,70 @@ var scriptonload = function scriptonload(srcAll, func) {
 };
 exports.scriptonload = scriptonload;
 
-},{}]},{},[2]);
+},{}],12:[function(require,module,exports){
+'use strict';
+
+exports.__esModule = true;
+
+var _jsCombinedPlayer = require('../js/CombinedPlayer');
+
+exports['default'] = (function (root, doc) {
+    if (root.uPlayer) return false;
+
+    var uPlayer = function uPlayer(wrapper) {
+        var param = JSON.parse(wrapper.getAttribute('data-param'));
+        if (!param.name) param.name = 'player-' + String(Math.random()).slice(-6);
+        if (!uPlayer.all[param.name]) uPlayer.all[param.name] = new _jsCombinedPlayer.CombinedPlayer(wrapper, param);
+        return uPlayer.all[param.name];
+    };
+
+    uPlayer.all = {};
+
+    uPlayer.abortAll = function (cur) {
+        for (var name in uPlayer.all) {
+            var player = uPlayer.all[name];
+            if (cur !== player) player.abort();
+        }
+    };
+
+    uPlayer.isMobile = (function () {
+        /* TODO есть еще mobileAgent оставить его наверное */
+        try {
+            return APP.vars.isMobile;
+        } catch (e) {
+            return false;
+        }
+    })();
+
+    uPlayer.mobileAgent = (function () {
+        var agentAll = ['ipod', 'iphone', 'ipad', 'android', 'blackberry'],
+            i = 0;
+
+        for (i; i < agentAll.length; i++) {
+            var re = new RegExp(agentAll[i], 'i');
+            if (re.test(navigator.userAgent)) {
+                var system = i < 3 ? 'IOS' : 'notIOS'; /* TODO */
+                return { 'name': agentAll[i], 'system': system };
+            }
+        }
+        return false;
+    })();
+
+    uPlayer.isNeedActivation = (function () {
+        var agentAll = ['ipod', 'iphone', 'ipad'],
+            i = 0;
+
+        for (i; i < agentAll.length; i++) {
+            var re = new RegExp(agentAll[i], 'i');
+            if (re.test(navigator.userAgent)) return agentAll[i];
+        }
+        return false;
+    })();
+
+    root.uPlayer = uPlayer;
+})(window, document);
+
+;
+module.exports = exports['default'];
+
+},{"../js/CombinedPlayer":2}]},{},[12]);

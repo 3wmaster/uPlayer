@@ -10,12 +10,13 @@ var _default = (function () {
 		_classCallCheck(this, _default);
 
 		this._createElements(oUPlayer, data);
+		this._insertVideoTag();
 		this._addEventsName();
 		this._addEvents();
 	}
 
 	_default.prototype._getHtml = function _getHtml() {
-		return '<div data-js="adv-player" class="advPlayer">' + '<video data-js="adv-video" class="advPlayer_video"></video>' + '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank"></a>' + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
+		return '<div data-js="adv-player" class="advPlayer">' + '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank"></a>' + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
 	};
 
 	_default.prototype._createElements = function _createElements(oUPlayer, data) {
@@ -25,7 +26,7 @@ var _default = (function () {
 		this.insert.innerHTML = this._getHtml();
 		this.wrapper = this.insert.firstChild;
 		this.param = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
-		this.video = this.wrapper.querySelector('[data-js="adv-video"]');
+		this.video = oUPlayer.initVideo;
 		this.clickingBtn = this.wrapper.querySelector('[data-js="adv-clicking-btn"]');
 		this.skipBtn = this.wrapper.querySelector('[data-js="adv-skip-btn"]');
 		this.advLeft = this.wrapper.querySelector('[data-js="adv-left"]');
@@ -33,6 +34,12 @@ var _default = (function () {
 		this.userAgent = this._defineUserAgent();
 		this.keyFrameAll = []; //массив времени в %  когда отпраляется стата - 0% 25% 50% 75% 100%
 		this.statEventAll = {}; //все типы событий по которым отправляется стата, ключ - src
+	};
+
+	_default.prototype._insertVideoTag = function _insertVideoTag() {
+		this.video.removeAttribute('style');
+		this.video.className = 'advPlayer_video';
+		this.wrapper.insertBefore(this.video, this.clickingBtn);
 	};
 
 	_default.prototype._defineUserAgent = function _defineUserAgent() {
@@ -119,7 +126,7 @@ var _default = (function () {
 	_default.prototype._updateTimeCur = function _updateTimeCur(sec) {
 		var leftTime = Math.floor(this.video.duration - sec),
 		    text = leftTime ? 'Осталось ' + leftTime + 'сек' : '&nbsp;',
-		    skipTime = Math.round(5 - sec);
+		    skipTime = Math.round(this.data.skipoffset - sec);
 
 		this.advLeft.innerHTML = text;
 
@@ -160,21 +167,7 @@ var _default = (function () {
 	_default.prototype._ready = function _ready() {
 		var self = this;
 
-		//this.video.muted = false;
-
-		/*if( this.userAgent === 'iphone'){
-  	this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active advPlayer-before';
-  	setTimeout(function(){
-  		self.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-  		self.video.play();
-  	}, 1500);
-  }
-  else {
-  	this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-  	this.video.play();
-  }*/
-
-		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active'; /* TODO */
 		this.video.play();
 
 		//this.video.muted = false;
@@ -237,7 +230,7 @@ var _jsHTMLPlayer2 = _interopRequireDefault(_jsHTMLPlayer);
 
 var _jsAdvPlayer = require('../js/AdvPlayer');
 
-var _jsAdvPlayer2 = _interopRequireDefault(_jsAdvPlayer);
+var _jsAdvPlayer3 = _interopRequireDefault(_jsAdvPlayer);
 
 var _jsYoutubePlayer = require('../js/YoutubePlayer');
 
@@ -246,6 +239,8 @@ var _jsVpaidPlayer = require('../js/VpaidPlayer');
 var _jsScriptonload = require('../js/scriptonload');
 
 var _jsVASTTag = require('../js/VASTTag');
+
+//import {IMA} from '../js/IMA';
 
 var CombinedPlayer = (function () {
     function CombinedPlayer(wrapper, param) {
@@ -264,35 +259,41 @@ var CombinedPlayer = (function () {
         this.oHTMLPlayer = undefined;
         this.oYoutubePlayer = undefined;
         this.HTMLDataApi; /* данные Html плеера. будем загружать только один раз и зранить здесь */
+        this.initVideo; /* тег видео, который будем инициализировать при клике и вставлять в нужное место. Нужно для IOS */
         this._initPlayers();
         this._addEvents();
     }
 
     CombinedPlayer.prototype._initPlayers = function _initPlayers() {
         var self = this;
-
-        if (this.isShowAdv) this._getAdvData();else this.countPLayers++;
-
-        if (this.data.youtube) this._getYoutubeData();else this._getHtmlData();
+        if (this.data.youtube) this._getYoutubeData();else this._getHtmlData(); /* TODO теперь не нужно - данные сразу в разметку теперь вставляются */
     };
 
     CombinedPlayer.prototype._checkInitPlayers = function _checkInitPlayers() {
         this.countPLayers++;
-        if (this.countPLayers === 2) {
+        if (1 === 1) {
+            /* TODO */
+
             // Все плееры инициализированы. Можно показывать обложку и, при необходимости, сразу запускать
-            if (this.data.autoplay && !uPlayer.isNeedActivation) this._start();
+            if (this.data.autoplay && !uPlayer.isNeedActivation) this._getAdvData();
             this.wrapper.className = this.wrapper.className + ' js-ready';
         }
     };
 
     CombinedPlayer.prototype._insertHTML = function _insertHTML() {
+        var _this = this;
+
         var age = this.data.age ? '<svg class="combinedPlayer_header_age" role="img"><use xlink:href="/static/img/symbols/sprite.svg#age' + this.data.age + '"></use></svg>' : '';
         var allVideoLink = this.data.allVideoLink ? '<a class="combinedPlayer_header_allVideoLink" href="' + this.data.allVideoLink + '">Все видео</a>' : '';
         var category = this.data.category ? '<span class="combinedPlayer_header_category">' + this.data.category + '</span>' : '';
-
+        var preview = (function () {
+            if (_this.data.cover.indexOf('.mp4') !== -1) {
+                return '<video loop muted autoplay class="combinedPlayer_preview" src="' + _this.data.cover + '"></video>';
+            } else return '<div class="combinedPlayer_preview" style="background-image:url(' + _this.data.cover + ')">';
+        })();
         var btns = this.data.online ? '<div class="combinedPlayer_playBtns">' + '<div class="combinedPlayer_playBtns_frame">' + '<a class="combinedPlayer_onlineBtn" href="' + this.data.online + '">' + '<svg class="combinedPlayer_onlineBtn_symbol" role="img"><use xlink:href="/static/img/symbols/sprite.svg#play"></use></svg>' + '<span class="combinedPlayer_onlineBtn_text">Смотреть online<br />бесплатно</span>' + '</a>' + '<a data-CombinedPlayer-btn class="combinedPlayer_trailerBtn" href="#">' + '<span class="combinedPlayer_trailerBtn_text">трейлер</span>' + '<svg class="combinedPlayer_trailerBtn_symbol" role="img"><use xlink:href="/static/img/symbols/sprite.svg#play"></use></svg>' + '</a>' + '</div>' + '</div>' : '<a data-CombinedPlayer-btn class="combinedPlayer_playBtn" href="#">' + '<span class="combinedPlayer_playBtn_circle">' + '<svg class="combinedPlayer_playBtn_symbol" role="img"><use xlink:href="/static/img/symbols/sprite.svg#play"></use></svg>' + '</span>' + '</a>';
 
-        this.wrapper.innerHTML = '<div data-CombinedPlayer-insert="adv" class="combinedPlayer_insert combinedPlayer_insert-adv"></div>' + '<div data-CombinedPlayer-insert="video" class="combinedPlayer_insert combinedPlayer_insert-video"></div>' + '<div class="combinedPlayer_preview" style="background-image:url(' + this.data.cover + ')">' + '<span class="combinedPlayer_shadow"></span>' + btns + '<div class="combinedPlayer_header">' + '<div class="combinedPlayer_header_left">' + '&nbsp;' + '</div>' + '<div class="combinedPlayer_header_right">' + category + allVideoLink + age + '</div>' + '</div>' + '</div>';
+        this.wrapper.innerHTML = '<div data-CombinedPlayer-insert="adv" class="combinedPlayer_insert combinedPlayer_insert-adv"></div>' + '<div data-CombinedPlayer-insert="video" class="combinedPlayer_insert combinedPlayer_insert-video"></div>' + preview + '<span class="combinedPlayer_shadow"></span>' + btns + '<div class="combinedPlayer_header">' + '<div class="combinedPlayer_header_left">' + '&nbsp;' + '</div>' + '<div class="combinedPlayer_header_right">' + category + allVideoLink + age + '</div>' + '</div>' + '</div>';
     };
 
     CombinedPlayer.prototype._defineUserAgent = function _defineUserAgent() {
@@ -333,8 +334,33 @@ var CombinedPlayer = (function () {
 
         _jsEvent.event.add(this.btn, 'click', function (e) {
             e.preventDefault();
-            self._start.call(self);
+
+            if (self.isShowAdv) {
+                self._initializeVideoTag.call(self);
+                self._getAdvData.call(self);
+            } else {
+                self._start.call(self);
+            }
+
+            /* TODO */
+            try {
+                gtag('event', 'click', {
+                    'event_category': 'engagement',
+                    'event_label': 'click_video_play'
+                });
+            } catch (e) {}
         });
+    };
+
+    CombinedPlayer.prototype._initializeVideoTag = function _initializeVideoTag() {
+        var initVideo = document.createElement('video');
+        initVideo.style.cssText = 'visibility:hidden; position:absolute; left: -9999px; top: -9999px; width:1px; height:1px; overflow:hidden;';
+        document.body.appendChild(initVideo);
+        initVideo.load();
+        this.initVideo = initVideo;
+
+        /* for IOS */
+        if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
     };
 
     CombinedPlayer.prototype._start = function _start() {
@@ -343,25 +369,23 @@ var CombinedPlayer = (function () {
         this._sendStat('');
 
         if (this.oAdvPlayer && this.isShowAdv) {
+            /* TODO избавиться от isShowAdv Нужно удалять oAdvPlayer */
             this.oAdvPlayer.start();
 
-            /* for IOS */
-            if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
-
-            this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
-            this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
+            //this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
+            this.isShowAdv = false; //если один раз показали - больше в этом плеере не показываем, без разницы какая реклама
         } else if (this.oVpaidPlayer && this.isShowAdv) {
+                /* TODO избавиться от isShowAdv Нужно удалять oVpaidPlayer */
                 this.oVpaidPlayer.start();
 
-                /* for IOS */
-                if (this.oYoutubePlayer) this.oYoutubePlayer.initialize();else this.oHTMLPlayer.initialize();
-
-                this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
+                //this.wrapper.className = this.wrapper.className + ' js-active js-active-adv';
                 this.isShowAdv = false; /* если один раз показали - больше в этом плеере не показываем, без разницы какая реклама */
             } else if (this.oHTMLPlayer) {
+                    this.wrapper.className = this.wrapper.className.replace(' js-active js-active-adv', ''); /* TODO переделать на общий прелоадер */
                     this.oHTMLPlayer.start();
                     this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
                 } else {
+                    this.wrapper.className = this.wrapper.className.replace(' js-active js-active-adv', ''); /* TODO переделать на общий прелоадер */
                     this.oYoutubePlayer.start();
                     this.wrapper.className = this.wrapper.className + ' js-active js-active-video';
                 }
@@ -369,12 +393,27 @@ var CombinedPlayer = (function () {
         if (this.onActive) this.onActive();
     };
 
-    CombinedPlayer.prototype._returnOriginalView = function _returnOriginalView(name) {
+    CombinedPlayer.prototype._returnOriginalView = function _returnOriginalView(playerName) {
         /* TODO больше не удаляем плееры */
         this.wrapper.className = this.wrapper.className.replace(/ js-active(-video|-adv)*/g, '');
-        //this[name].del();
+        //this[playerName].del();
         //delete this[name];
         if (this.onDisableActive) this.onDisableActive();
+        this._sendEventMessage('ended', playerName);
+    };
+
+    CombinedPlayer.prototype._onFullscreen = function _onFullscreen(playerName) {
+        this._sendEventMessage('fullscreenOn', playerName);
+    };
+
+    CombinedPlayer.prototype._onFullscreenExit = function _onFullscreenExit(playerName) {
+        this._sendEventMessage('fullscreenOff', playerName);
+    };
+
+    CombinedPlayer.prototype._sendEventMessage = function _sendEventMessage(eventName, playerName) {
+        try {
+            window.top.postMessage(JSON.stringify({ "uPLayer": true, "event": eventName }), "*");
+        } catch (e) {}
     };
 
     CombinedPlayer.prototype._sendStat = function _sendStat(persent) {
@@ -387,21 +426,26 @@ var CombinedPlayer = (function () {
     };
 
     CombinedPlayer.prototype._getHtmlData = function _getHtmlData() {
-        var self = this,
-            path = this.data.isDev ? 'kinoafishaspb.ru' : 'kinoafisha.info',
-            _onSuccess = function _onSuccess(dataApi) {
-            self._onSuccessGetHtmlData.call(self, dataApi);
-        },
-            _onError = function _onError() {};
+        /* TODO - теперь ничего не получаем, данные в  */
 
-        //
-        if (this.HTMLDataApi) _onSuccess(this.HTMLDataApi);else {
-            _jsScriptRequest.scriptRequest('//api.' + path + '/player/info/' + this.data.trailer_id + '/', function (dataApi) {
-                _onSuccess(dataApi);
-            }, function () {
-                _onError();
-            });
-        }
+        var self = this;
+
+        self.oHTMLPlayer = new _jsHTMLPlayer2['default'](self, self.data);
+        self.oHTMLPlayer.afterEnd = function () {
+            self._returnOriginalView.call(self, 'oHTMLPlayer');
+        };
+        self._checkInitPlayers.call(self);
+
+        /*var self = this,
+            path = this.data.isDev ? 'kinoafishaspb.ru' : 'kinoafisha.info',
+            _onSuccess = function(dataApi){
+                self._onSuccessGetHtmlData.call(self, dataApi);
+            },
+            _onError = function(){};
+            if(this.HTMLDataApi) _onSuccess(this.HTMLDataApi);
+        else {
+            scriptRequest('//api.'+ path +'/player/info/' + this.data.trailer_id + '/', function(dataApi){_onSuccess(dataApi)}, function(){_onError()});
+        }*/
     };
 
     CombinedPlayer.prototype._getYoutubeData = function _getYoutubeData() {
@@ -428,47 +472,221 @@ var CombinedPlayer = (function () {
     };
 
     CombinedPlayer.prototype._getAdvData = function _getAdvData() {
-        var _this = this;
+        var _this2 = this;
+
+        if (!this.isShowAdv) {
+            this._start();
+            return;
+        }
+
+        this.wrapper.className = this.wrapper.className + ' js-active js-active-adv'; /* TODO переделать на общий прелоадер */
 
         var self = this,
             data = {},
-            /* урл, ссылка, статистика итд */
+
+        /* урл, ссылка, статистика итд */
         curTime = new Date().getTime(),
             advInterval = 24,
             url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
             pathYandexTest = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=https://kinoafisha.info&page-ref=https://kinoafisha.info',
-            pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=' + url + '&page-ref=' + url,
+            pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=' + url + '&page-ref=' + url + '&rnd=' + curTime,
             pathVastGoogleTest = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
 
         //Можно использовать даже боевой тег, добавив в него параметры- вот так http://data.videonow.ru/?profile_id=695851&format=vast&vpaid=1&flash=0 - отдается наш JS-VPID
-        pathVideonowTest = 'https://data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
-            pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
+        pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
             pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=' + curTime,
             pathGoogleTest = '//ima3vpaid.appspot.com/?adTagUrl=http%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fad_type%3Dvideo%26client%3Dca-video-pub-4968145218643279%26videoad_start_delay%3D0%26description_url%3Dhttp%253A%252F%252Fwww.google.com%26hl%3Den%26max_ad_duration%3D30000%26adtest%3Don&type=js',
             pathBoosterTest = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
             pathBoosterTestPopcorn = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
-            pathBooster = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaUZ6TXNZWUpEQ283UWFTZXpXRG5LU2c9PQ==&autoplay=1&url=' + url,
-            pathMoevideo = '//moevideo.biz/vast&vt=js',
-            pathVideonow = '//data.videonow.ru/?profile_id=695851&format=vast&container=preroll&vpaid=1&flash=0',
-            pathWmg = '//an.facebook.com/v1/instream/vast.xml?placementid=TEST_PLACEMENT_ID&pageurl=http://www.google.com&maxaddurationms=30000',
-            pathes = [pathBooster, pathMoevideo, pathYandex, pathVideonow],
-            path = (function () {
-            if (_this.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
-            if (_this.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
-            if (_this.data.dev === 'vpaidVideonowTest') return pathVideonowTest;
-            if (_this.data.dev === 'yandex') return pathYandexTest;
-            if (_this.data.dev === 'google-test') return pathGoogleTest;
-            if (_this.data.dev === 'booster') return pathBooster;
-            if (_this.data.dev === 'booster? -popcorn') return pathBoosterTestPopcorn;
-            if (_this.data.dev === 'moevideo') return pathMoevideo;
-            if (_this.data.dev === 'videonow') return pathVideonow;
-            if (_this.data.dev === 'wmg') return pathWmg;
+            pathBooster = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaUZ6TXNZWUpEQ283UWFTZXpXRG5LU2c9PQ==&url=' + url + '&autoplay=1&hideSkipButton=0&overroll=1' + '&rnd=' + curTime,
+            pathMoevideo = '//moevideo.biz/vast?ref=kinoafisha.info&impressionAfterPaid=1&es=1' + '&rnd=' + curTime,
+            pathMoevideo2 = '//ad.adriver.ru/cgi-bin/erle.cgi?sid=219765&bt=61&pz=0&bn=19&target=top&rnd=' + curTime + '&tuid=1',
+            pathVideonow = (function () {
+            var uid = 695851;
+            try {
+                if (APP.vars.isMobile) uid = '3278726';
+            } catch (e) {}
+            return '//data.videonow.ru/?profile_id=' + uid + '&format=vast&container=preroll' + '&rnd=' + curTime;
+        })(),
+            pathWmg = '//an.facebook.com/v1/instream/vast.xml?placementid=TEST_PLACEMENT_ID&pageurl=http://www.google.com&maxaddurationms=30000' + '&rnd=' + curTime,
+            pathOptAd360 = '//ima3vpaid.appspot.com/?adTagUrl=https%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fclient%3Dca-video-pub-5512390705137507%26slotname%3D9018911080%2F5952557309%26ad_type%3Dvideo%26description_url%3Dhttp%253A%252F%252Fkinoafisha.info%26max_ad_duration%3D60000%26videoad_start_delay%3D0&type=js' + '&rnd=' + curTime,
+            pathOptAd3602 = '//googleads.g.doubleclick.net/pagead/ads?client=ca-video-pub-5512390705137507&slotname=9018911080/5952557309&ad_type=video&description_url=http%3A%2F%2Fkinoafisha.info&max_ad_duration=60000&videoad_start_delay=0' + '&rnd=' + curTime,
+            pathMediawayss = '//ad.mediawayss.com/delivery/impress?video=vast&pzoneid=823&ch=DOMAIN_HERE' + '&rnd=' + curTime,
+            pathUnion = '//stats.utraff.com/index.php?r=adv/vast&host_id=1945&rand' + curTime,
+            pathPladform = (function () {
+            var pl = '110461',
+                type = 'preroll',
+                license = '1',
+                thematic = self.data.ads.puid5 + '' + self.data.ads.puid6,
+                age = self.data.ads.puid7,
+                duration = 150,
+                dl = url,
+                target = (function () {
+                var val;
+                try {
+                    if (APP.vars.isMobile) val = 'mobile';else val = 'web-html5';
+                } catch (e) {
+                    val = 'web-html5';
+                }
+                return val;
+            })(),
+                adformat = '1';
+
+            return '//out.pladform.ru/getVast?pl=' + pl + '&type=' + type + '&license=' + license + '&thematic=' + thematic + '&age=' + age + '&duration=' + duration + '&dl=' + dl + '&target=' + target + '&adformat=' + adformat + '&rnd=' + curTime;
+        })(),
+            pathAdRiver = '//ad.adriver.ru/cgi-bin/rle.cgi?sid=1&bt=61&ad=657980&pid=2752474&bn=2752474&rnd=' + curTime + '&tuid=1',
+            pathAdRiverWrapper = '//api.kinoafisha.info/ad/vast/?bid=20180604_homecredit',
+            pathInVideo = (function () {
+            var pidDesktop = 349,
+                pidIOS = 350,
+                pidAndroid = 351,
+                pid = (function () {
+                if (!uPlayer.mobileAgent) return pidDesktop;else if (uPlayer.mobileAgent.system == 'IOS') return pidIOS;else return pidAndroid;
+            })(),
+                puid5 = (function () {
+                try {
+                    return '&puid5=' + self.data.inVideo.puid5;
+                } catch (e) {
+                    return '';
+                }
+            })(),
+                puid6 = (function () {
+                try {
+                    return '&puid6=' + self.data.inVideo.puid6;
+                } catch (e) {
+                    return '';
+                }
+            })(),
+                puid7 = (function () {
+                return '&puid7=1';
+            })(),
+                puid8 = (function () {
+                /* TODO хронометраж контента */
+                return '&puid8=4';
+            })(),
+                puid10 = (function () {
+                /* Размер плеера */
+                var val;
+                try {
+                    if (APP.vars.isMobile) val = 0;else val = 1;
+                } catch (e) {
+                    val = 4;
+                }
+                return '&puid10=' + val;
+            })();
 
             //
-            return pathes[Math.floor(Math.random() * pathes.length)];
+            return '//instreamvideo.ru/core/vpaid/linear?pid=' + pid + '&vr=1&rid=' + curTime + puid5 + puid6 + puid7 + puid8 + puid10 + '&puid11=1&puid12=16&dl=' + url + '&duration=150&vn=' + url;
+        })(),
+            pathAdbetnet = '//adbetnet.advertserve.com/servlet/vast3/zone?zid=4918&pid=1291&rnd=' + curTime,
+            pathMarketPlace = '//widget.market-place.su/videovast/1574.xml?rnd=' + curTime,
+            pathVihub = '//vast.vihub.ru/?plid=1176&startdelay=0&ref=' + url,
+            pathXameleon = '//ssp.xameleon.io/?VyuED9ftSXPwzmOgOOyqDGAn6N/b4XZgKdJ7fu/5cpLNaadEDRpsYeunQNw8ykBq0j9oahcMAomAMfc3EtdLOsv2AQcnB8ipDARNGsO2lqs=',
+            pathZetcat = '//3647.tech/vpaid/?domain=www.kinoafisha1.info',
+            pathes = {
+            'RCA': pathYandex,
+            'Videonow': pathVideonow,
+            'Mediawayss': pathMediawayss,
+            'InVideo': pathInVideo,
+            'UnionTraff': pathUnion,
+            'Moevideo': pathMoevideo,
+            'Moevideo2': pathMoevideo2,
+            'Pladform': pathPladform,
+            'Booster': pathBooster,
+            'MarketPlace': pathMarketPlace,
+            'Vihub': pathVihub,
+            'Zetcat': pathZetcat
+        },
+            agents = (function () {
+            if (self.data.ads.agents) {
+                console.log('data.self');
+                return self.data.ads.agents;
+            }
+            if (self.data.youtube) {
+                return APP.vars.prioritiesPrerollYoutube;
+            } else {
+                return APP.vars.prioritiesPreroll;
+            }
+        })(),
+            randomKey = function randomKey(data) {
+            var randomArr = [];
+
+            for (var key in data) {
+                var arr = [],
+                    i = 0,
+                    j = data[key];
+
+                for (i, j; i < j; i++) {
+                    arr.push(key);
+                }
+                randomArr = randomArr.concat(arr);
+            }
+
+            if (randomArr.length != 100) {
+                throw new Error('Общее значение должно быть равно 100');
+            }
+
+            return randomArr[randomInteger(0, 99)];
+        },
+            randomInteger = function randomInteger(min, max) {
+            var rand = min - 0.5 + Math.random() * (max - min + 1);
+            rand = Math.round(rand);
+            return rand;
+        },
+            agent = randomKey(agents),
+            path = (function () {
+            var url = new URL(window.location.href),
+                ads = url.searchParams.get('uPLayerAds');
+
+            if (pathes[ads]) return pathes[ads];
+
+            //return '//pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=' + curTime;
+
+            if (_this2.data.dev) {
+                if (_this2.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
+                if (_this2.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
+                if (_this2.data.dev === 'yandex') return pathYandex;
+                if (_this2.data.dev === 'google-test') return pathGoogleTest;
+                if (_this2.data.dev === 'booster') return pathBooster;
+                if (_this2.data.dev === 'booster? -popcorn') return pathBoosterTestPopcorn;
+                if (_this2.data.dev === 'moevideo') return pathMoevideo;
+                if (_this2.data.dev === 'moevideo2') return pathMoevideo2;
+                if (_this2.data.dev === 'videonow') return pathVideonow;
+                if (_this2.data.dev === 'wmg') return pathWmg;
+                if (_this2.data.dev === 'optAd360') return pathOptAd360;
+                if (_this2.data.dev === 'optAd3602') return pathOptAd3602;
+                if (_this2.data.dev === 'mediawayss') return pathMediawayss;
+                if (_this2.data.dev === 'inVideo') return pathInVideo;
+                if (_this2.data.dev === 'union') return pathUnion;
+                if (_this2.data.dev === 'pladform') return pathPladform;
+                if (_this2.data.dev === 'adRiver') return pathAdRiver;
+                if (_this2.data.dev === 'adRiverWrapper') return pathAdRiverWrapper;
+                if (_this2.data.dev === 'Adbetnet') return pathAdbetnet;
+                if (_this2.data.dev === 'MarketPlace') return pathMarketPlace;
+                if (_this2.data.dev === 'Xameleon') return pathXameleon;
+            }
+
+            //
+            //return pathes[Math.floor(Math.random() * (pathes.length))];
+
+            /*try{
+                if(APP.vars.locationCityMain === 'nsk' ||
+                    APP.vars.locationCityMain === 'nn' ||
+                    APP.vars.locationCityMain === 'chel' ||
+                    APP.vars.locationCityMain === 'omsk' ||
+                    APP.vars.locationCityMain === 'ufa' ||
+                    APP.vars.locationCityMain === 'perm' ||
+                    APP.vars.locationCityMain === 'voronezh') {
+                    return pathAdRiverWrapper;
+                }
+            } catch(e){};*/
+
+            return pathes[agent];
         })(),
             _getOur = function _getOur() {
-            if (localStorage && !localStorage.isKinoafishaVideoAdv || (curTime - parseFloat(localStorage.isKinoafishaVideoAdv)) / 1000 / 60 / 60 > advInterval) {
+            /* TODO пока отключил, чет не работает */
+            self._start.call(self);
+            /*if((localStorage && !localStorage.isKinoafishaVideoAdv) || ((curTime - parseFloat(localStorage.isKinoafishaVideoAdv))/1000/60/60 > advInterval)){
                 try {
                     localStorage.isKinoafishaVideoAdv = curTime;
                     data.mediaFile = 'https://video.kinoafisha.info/branding/kinoafisha/kinoafisha-youtube3.mp4';
@@ -477,46 +695,63 @@ var CombinedPlayer = (function () {
                     data.statEventAll = {};
                     data.keyFrameAll = [];
                     self._onSuccessGetAdvData.call(self, data);
-                } catch (e) {
-                    //например IOS частный доступ
-                    self._checkInitPlayers.call(self);
+                } catch(e){
+                    self._start.call(self);
                 }
-            } else self._checkInitPlayers.call(self);
-        },
-            vastTagObj = new _jsVASTTag.VASTTag({
-            path: path,
-            onVast: function onVast(data) {
-                console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем mp4 плеер');
-                self._onSuccessGetAdvData.call(self, data);
-            },
-            onVpaid: function onVpaid(data) {
-                console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем vpaid плеер');
-                self._onSuccessGetVpaidData.call(self, data);
-            },
-            onError: function onError() {
-                /* например, блокировщик рекламы */
-                _getOur();
             }
-        });
-    };
-
-    CombinedPlayer.prototype._onSuccessGetHtmlData = function _onSuccessGetHtmlData(data) {
-        var self = this;
-
-        self.oHTMLPlayer = new _jsHTMLPlayer2['default'](self, data);
-        self.oHTMLPlayer.afterEnd = function () {
-            self._returnOriginalView.call(self, 'oHTMLPlayer');
+            else self._start.call(self);*/
         };
-        self._checkInitPlayers.call(self);
+
+        if (1 == 2) {
+
+            new _jsIMA.IMA({
+                oUPlayer: this,
+                path: path,
+                onError: function onError() {
+                    /* например, блокировщик рекламы */
+                    _getOur();
+                }
+            });
+        } else {
+            console.log('agent', agent);
+            new _jsVASTTag.VASTTag({
+                path: path,
+                onVast: function onVast(data) {
+                    console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем mp4 плеер');
+                    self._onSuccessGetAdvData.call(self, data);
+                },
+                onVpaid: function onVpaid(data) {
+                    console.log('uPlayer', 'Рекламные данные успешно  получены. Создаем vpaid плеер');
+                    self._onSuccessGetVpaidData.call(self, data);
+                },
+                onError: function onError() {
+                    /* например, блокировщик рекламы */
+                    _getOur();
+                }
+            });
+
+            /* TODO Отправдляем нашу стату - какой агент пробует показать рекламу */
+            var image = document.createElement('IMG'),
+                path = window.location.hostname.indexOf('kinoafishaspb.ru') === -1 ? 'kinoafisha.info' : 'kinoafishaspb.ru';
+            image.src = 'https://api.' + path + '/player/statad/?source=' + agent;
+            image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
+            document.body.appendChild(image);
+        }
     };
+
+    /* больше не запрашиваем данные */
+    /*_onSuccessGetHtmlData(data){
+        var self = this;
+          self.oHTMLPlayer = new HTMLPlayer(self, data);
+        self.oHTMLPlayer.afterEnd = function(){
+            self._returnOriginalView.call(self, 'oHTMLPlayer');
+        }
+        self._checkInitPlayers.call(self);
+    }*/
 
     CombinedPlayer.prototype._onSuccessGetVpaidData = function _onSuccessGetVpaidData(data) {
         var self = this;
         this.oVpaidPlayer = new _jsVpaidPlayer.VpaidPlayer(self, data);
-        this.oVpaidPlayer.afterClicking = function () {
-            self.oAdvPlayer.abort();
-            self._returnOriginalView.call(self, 'oAdvPlayer');
-        };
     };
 
     CombinedPlayer.prototype._onSuccessGetAdvData = function _onSuccessGetAdvData(data) {
@@ -536,7 +771,7 @@ var CombinedPlayer = (function () {
             self.oAdvPlayer.abort();
             self._returnOriginalView.call(self, 'oAdvPlayer');
         };
-        self._checkInitPlayers.call(self);
+        self._start.call(self);
     };
 
     CombinedPlayer.prototype._onSuccessGetYoutubeData = function _onSuccessGetYoutubeData() {
@@ -549,6 +784,14 @@ var CombinedPlayer = (function () {
         self.oYoutubePlayer.afterEnd = function () {
             self._returnOriginalView.call(self, 'oYoutubePlayer');
         };
+    };
+
+    CombinedPlayer.prototype.onAdsCompleted = function onAdsCompleted() {
+        /* TODO - сделать всю рекламу так */
+        if (this.oYoutubePlayer) this.oYoutubePlayer.start();else this.oHTMLPlayer.start();
+
+        this.isShowAdv = false; /* TODO ??  */
+        this.wrapper.className = this.wrapper.className.replace(' js-active-adv', ' js-active-video');
     };
 
     CombinedPlayer.prototype.abort = function abort() {
@@ -567,7 +810,7 @@ var CombinedPlayer = (function () {
 
         this.wrapper.className = this.wrapper.className.replace(/ js-active(-video|-adv)*/g, '');
         this.wrapper.innerHTML = '';
-        ;
+
         delete uPlayer.all[this.name];
     };
 
@@ -631,7 +874,7 @@ var _default = (function () {
 		var HQ = data.files.high ? data.files.high.path.replace(/\.mp4$/, '') : false;
 		var quality = '"LQ": "' + LQ + '"' + (HQ ? ', "HQ": "' + HQ + '"' : '');
 
-		return '<div data-js="html-player" data-quality=\'{' + quality + '}\' class="htmlPlayer">' + '<video data-js="video" preload="metadata" class="htmlPlayer_video" controls="controls" poster="' + data.poster + '" webkit-playsinline>' + '<source src="' + data.files.low.path + '" type="video/mp4" />' + '<a class="htmlPlayer_altVideo" href="' + data.files.low.path + '"  style="background-image:url(' + data.poster + ')">' + '<img class="htmlPlayer_altVideoPoster" src="' + data.poster + '" alt="" />' + '<img class="htmlPlayer_altVideoBtn" src="https://video.kinoafisha.info/i/player/play-btn.png" alt="" />' + '</a>' + '</video>' + '<div data-js="toggle" class="htmlPlayer_toggle">' + '<img class="htmlPlayer_bigPauseBtn" src="https://video.kinoafisha.info/i/player/pause-btn.png" alt="" />' + '</div>' + '<div data-js="footer" class="htmlPlayer_footer">' + '<div data-js="controls" class="htmlPlayer_controls">' + '<div class="htmlPlayer_controlsCell htmlPlayer_controlsCell-shrink">' + '<div class="htmlPlayer_playback htmlPlayer_controlsBtn">' + '<img data-js="play"  class="htmlPlayer_playBtn" src="https://video.kinoafisha.info/i/player/play.png" alt="" />' + '<img data-js="pause"  class="htmlPlayer_pauseBtn" src="https://video.kinoafisha.info/i/player/pause.png" alt="" />' + '</div>' + '<div class="htmlPlayer_time">' + '<span data-js="timeCur" class="htmlPlayer_timeCur"></span>' + '<span class="htmlPlayer_timeSep">/</span>' + '<span data-js="timeDur" class="htmlPlayer_timeDur"></span>' + '</div>' + '</div>' + '<div class="htmlPlayer_controlsCell">' + '<div data-js="rewind" data-meter = \'{}\'  class="playerMeter  htmlPlayer_controlsBtn">' + '<div class="playerMeter-strip"></div>' + '<div data-js="buffered" class="playerMeter-buffered"></div>' + '<div data-js="progress" class="playerMeter-progress"></div>' + '<div data-js="slider" class="playerMeter-slider"></div>' + '</div>' + '</div>' + '<div class="htmlPlayer_controlsCell  htmlPlayer_controlsCell-shrink">' + '<span data-js="quality" class="htmlPlayer_qualityBtn htmlPlayer_controlsBtn">hq</span>' + '<div data-js="mute" class="htmlPlayer_mute htmlPlayer_controlsBtn">' + '<img  data-js="mute-on" data-js="mute-on"  class="htmlPlayer_muteOn" src="https://video.kinoafisha.info/i/player/mute-on.png" alt="" />' + '<img  data-js="mute-off" data-js="mute-off"  class="htmlPlayer_muteOff" src="https://video.kinoafisha.info/i/player/mute-off.png" alt="" />' + '</div>' + '<div data-js="volume" data-meter = \'{"value": 1}\'  class="playerMeter playerMeter_volume htmlPlayer_controlsBtn">' + '<div class="playerMeter-strip"></div>' + '<div data-js="progress" class="playerMeter-progress"></div>' + '<div data-js="slider" class="playerMeter-slider"></div>' + '</div>' + '<div data-js="fullscreen" class="htmlPlayer_fullscreen htmlPlayer_controlsBtn"> ' + '<img data-js="fullscreen-request"  class="htmlPlayer_fullscreenRequest" src="https://video.kinoafisha.info/i/player/fullscreen-request.png" alt="" />' + '<img data-js="fullscreen-exit"  class="htmlPlayer_fullscreenExit" src="https://video.kinoafisha.info/i/player/fullscreen-exit.png" alt="" />' + '</div>' + '<div data-js="share-btn" class="htmlPlayer_shareBtn htmlPlayer_controlsBtn">&lt;/&gt;</div>' + '</div>' + '</div>' + '<div data-js="share" class="htmlPlayer_share">' + '<div class="htmlPlayer_shareItem">' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-title">' + 'Ссылка на ролик' + '</div>' + '<div class="htmlPlayer_shareCell">' + '<input readonly class="htmlPlayer_shareField htmlPlayer_shareField-insert" type="text" value="' + data.trailer_url + '" />' + '</div>' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-shrink">' + '&nbsp;' + '</div>' + '</div>' + '<div class="htmlPlayer_shareItem">' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-title">' + 'Код для вставки' + '</div>' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-shrink">' + '<span class="htmlPlayer_shareNote">ширина</span>' + '<input data-js="embed-width" class="htmlPlayer_shareField htmlPlayer_shareField-size" type="text" value="640" />' + '<span class="htmlPlayer_shareNote">высота</span>' + '<input data-js="embed-height" class="htmlPlayer_shareField htmlPlayer_shareField-size" type="text" value="360" />' + '</div>' + '<div class="htmlPlayer_shareCell">' + '<input data-js="embed" readonly class="htmlPlayer_shareField htmlPlayer_shareField-insert" type="text" value=\'' + data.embed_url + '\' />' + '</div>' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-shrink">' + '&nbsp;' + '</div>' + '</div>' + '</div>' + '</div>' + '<img  class="htmlPlayer_logo" src="https://video.kinoafisha.info/i/player/logo.png" alt="" />' + '<div data-js="poster" class="htmlPlayer_poster" style="background-image:url(' + data.poster + ')">' + '<div class="htmlPlayer_posterInfo">' + '<span class="htmlPlayer_posterCat">' + data.title + '</span>' + '<span class="htmlPlayer_posterName">' + data.movie_name + '</span>' + '</div>' + '<img  class="htmlPlayer_posterBtn" src="https://video.kinoafisha.info/i/player/play-btn.png" alt="" />' + '</div>' + '<div class="htmlPlayer_preloader"></div>' + '</div>';
+		return '<div data-js="html-player" data-quality=\'{' + quality + '}\' class="htmlPlayer">' + '<video data-js="video" preload="metadata" class="htmlPlayer_video" controls="controls" poster="' + data.cover + '" webkit-playsinline>' + '<source src="' + data.files.low.path + '" type="video/mp4" />' + '<a class="htmlPlayer_altVideo" href="' + data.files.low.path + '"  style="background-image:url(' + data.cover + ')">' + '<img class="htmlPlayer_altVideoPoster" src="' + data.cover + '" alt="" />' + '<img class="htmlPlayer_altVideoBtn" src="https://video.kinoafisha.info/i/player/play-btn.png" alt="" />' + '</a>' + '</video>' + '<div data-js="toggle" class="htmlPlayer_toggle">' + '<img class="htmlPlayer_bigPauseBtn" src="https://video.kinoafisha.info/i/player/pause-btn.png" alt="" />' + '</div>' + '<div data-js="footer" class="htmlPlayer_footer">' + '<div data-js="controls" class="htmlPlayer_controls">' + '<div class="htmlPlayer_controlsCell htmlPlayer_controlsCell-shrink">' + '<div class="htmlPlayer_playback htmlPlayer_controlsBtn">' + '<img data-js="play"  class="htmlPlayer_playBtn" src="https://video.kinoafisha.info/i/player/play.png" alt="" />' + '<img data-js="pause"  class="htmlPlayer_pauseBtn" src="https://video.kinoafisha.info/i/player/pause.png" alt="" />' + '</div>' + '<div class="htmlPlayer_time">' + '<span data-js="timeCur" class="htmlPlayer_timeCur"></span>' + '<span class="htmlPlayer_timeSep">/</span>' + '<span data-js="timeDur" class="htmlPlayer_timeDur"></span>' + '</div>' + '</div>' + '<div class="htmlPlayer_controlsCell">' + '<div data-js="rewind" data-meter = \'{}\'  class="playerMeter  htmlPlayer_controlsBtn">' + '<div class="playerMeter-strip"></div>' + '<div data-js="buffered" class="playerMeter-buffered"></div>' + '<div data-js="progress" class="playerMeter-progress"></div>' + '<div data-js="slider" class="playerMeter-slider"></div>' + '</div>' + '</div>' + '<div class="htmlPlayer_controlsCell  htmlPlayer_controlsCell-shrink">' + '<span data-js="quality" class="htmlPlayer_qualityBtn htmlPlayer_controlsBtn">hq</span>' + '<div data-js="mute" class="htmlPlayer_mute htmlPlayer_controlsBtn">' + '<img  data-js="mute-on" data-js="mute-on"  class="htmlPlayer_muteOn" src="https://video.kinoafisha.info/i/player/mute-on.png" alt="" />' + '<img  data-js="mute-off" data-js="mute-off"  class="htmlPlayer_muteOff" src="https://video.kinoafisha.info/i/player/mute-off.png" alt="" />' + '</div>' + '<div data-js="volume" data-meter = \'{"value": 1}\'  class="playerMeter playerMeter_volume htmlPlayer_controlsBtn">' + '<div class="playerMeter-strip"></div>' + '<div data-js="progress" class="playerMeter-progress"></div>' + '<div data-js="slider" class="playerMeter-slider"></div>' + '</div>' + '<div data-js="fullscreen" class="htmlPlayer_fullscreen htmlPlayer_controlsBtn"> ' + '<img data-js="fullscreen-request"  class="htmlPlayer_fullscreenRequest" src="https://video.kinoafisha.info/i/player/fullscreen-request.png" alt="" />' + '<img data-js="fullscreen-exit"  class="htmlPlayer_fullscreenExit" src="https://video.kinoafisha.info/i/player/fullscreen-exit.png" alt="" />' + '</div>' + '<div data-js="share-btn" class="htmlPlayer_shareBtn htmlPlayer_controlsBtn">&lt;/&gt;</div>' + '</div>' + '</div>' + '<div data-js="share" class="htmlPlayer_share">' + '<div class="htmlPlayer_shareItem">' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-title">' + 'Ссылка на ролик' + '</div>' + '<div class="htmlPlayer_shareCell">' + '<input readonly class="htmlPlayer_shareField htmlPlayer_shareField-insert" type="text" value="' + data.trailer_url + '" />' + '</div>' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-shrink">' + '&nbsp;' + '</div>' + '</div>' + '<div class="htmlPlayer_shareItem">' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-title">' + 'Код для вставки' + '</div>' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-shrink">' + '<span class="htmlPlayer_shareNote">ширина</span>' + '<input data-js="embed-width" class="htmlPlayer_shareField htmlPlayer_shareField-size" type="text" value="640" />' + '<span class="htmlPlayer_shareNote">высота</span>' + '<input data-js="embed-height" class="htmlPlayer_shareField htmlPlayer_shareField-size" type="text" value="360" />' + '</div>' + '<div class="htmlPlayer_shareCell">' + '<input data-js="embed" readonly class="htmlPlayer_shareField htmlPlayer_shareField-insert" type="text" value=\'' + data.embed_url + '\' />' + '</div>' + '<div class="htmlPlayer_shareCell htmlPlayer_shareCell-shrink">' + '&nbsp;' + '</div>' + '</div>' + '</div>' + '</div>' + '<img  class="htmlPlayer_logo" src="https://video.kinoafisha.info/i/player/logo.png" alt="" />' + '<div data-js="poster" class="htmlPlayer_poster" style="background-image:url(' + data.cover + ')">' + '<div class="htmlPlayer_posterInfo">' + '<span class="htmlPlayer_posterCat">' + data.title + '</span>' + '<span class="htmlPlayer_posterName">' + data.movie_name + '</span>' + '</div>' + '<img  class="htmlPlayer_posterBtn" src="https://video.kinoafisha.info/i/player/play-btn.png" alt="" />' + '</div>' + '<div class="htmlPlayer_preloader"></div>' + '</div>';
 	};
 
 	_default.prototype._createElements = function _createElements(oUPlayer, HTMLDataApi) {
@@ -678,6 +921,7 @@ var _default = (function () {
 		this.isCanPlay = true; //можем проигрывать или нет. Если нет - будет грузиться флеш
 		this.keyFrameAll; //массив времени в %  когда отпраляется стата - 0% 50% 90% 100%
 		this.isAutoPlay = true; //теперь постер отдельно и при вызове объекта сразу начинаем проигрывание
+		this.isFullscreenMode = false; /* отслеживаем, этот ли плеер находится в полноэкранном режиме */
 	};
 
 	_default.prototype._resetStat = function _resetStat() {
@@ -1070,7 +1314,15 @@ var _default = (function () {
 
 		document['on' + eName] = function (event) {
 			event.preventDefault();
-			if (document[fullscreenElement]) self._showFullscreen.call(self);else self._hideFullscreen.call(self);
+			if (self.wrapper === document[fullscreenElement]) {
+				self._showFullscreen.call(self);
+				self.isFullscreenMode = true;
+				self.oUPlayer._onFullscreen('HTML');
+			} else if (self.isFullscreenMode === true) {
+				self._hideFullscreen.call(self);
+				self.isFullscreenMode = false;
+				self.oUPlayer._onFullscreenExit('HTML');
+			}
 		};
 
 		this.fullscreenRequest.onclick = function () {
@@ -1399,6 +1651,8 @@ var VASTTag = (function () {
 		}
 
 		this._getAdTag(path, function (adTag) {
+			/* TODO может быть несколько креативов 'Creative' итд В общем сделать нормальный разбор */
+
 			if (!adTag) {
 				console.error('uPlayer', 'пустой тег или <nobanner></nobanner>');
 				_this.param.onError();
@@ -1427,6 +1681,7 @@ var VASTTag = (function () {
 					} else {
 						_this.data.mediaFile = advFile.file;
 						if (advFile.type == 'mp4') {
+							_this.data.skipoffset = _this._getSkipoffset(adTag);
 							_this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 							_this.param.onVast(_this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
 						} else {
@@ -1525,7 +1780,6 @@ var VASTTag = (function () {
 		var _this2 = this;
 
 		console.log('get ad tag');
-		path = path + '&rnd=' + new Date().getTime();
 		/* TODO почему то не работает */
 		//if(this.xhr) return; /* на всякий */
 		this.xhr = new XMLHttpRequest();
@@ -1559,6 +1813,21 @@ var VASTTag = (function () {
 		return tag.querySelector('VASTAdTagURI').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 	};
 
+	VASTTag.prototype._getSkipoffset = function _getSkipoffset(tag) {
+		var skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
+		if (!skipoffset) return 5;
+
+		//
+		if (skipoffset.indexOf('%') === -1) {
+			var arr = skipoffset.split(':');
+			var seconds = arr[0] * 60 * 60 + arr[1] * 60 + arr[2] * 1;
+			return seconds;
+		} else {
+			/* TODO % */
+			return 5;
+		}
+	};
+
 	return VASTTag;
 })();
 
@@ -1576,11 +1845,12 @@ var VpaidPlayer = (function () {
 		_classCallCheck(this, VpaidPlayer);
 
 		this._createElements(oUPlayer, vast);
+		this._insertVideoTag();
 		this._load();
 	}
 
 	VpaidPlayer.prototype._getHtml = function _getHtml() {
-		return '<div data-js="adv-player" class="advPlayer">' + '<video data-js="adv-video" class="advPlayer_video"></video>' + '<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
+		return '<div data-js="adv-player" class="advPlayer">' + '<div data-js="vpaid-slot" style="position:absolute;left:0;top:0;display:block;width:100%;height:100%;"></div>' + '</div>';
 	};
 
 	VpaidPlayer.prototype._createElements = function _createElements(oUPlayer, vast) {
@@ -1589,106 +1859,113 @@ var VpaidPlayer = (function () {
 		this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="adv"]');
 		this.insert.innerHTML = this._getHtml();
 		this.wrapper = this.insert.firstChild;
-		this.video = this.wrapper.querySelector('[data-js="adv-video"]');
+		this.video = oUPlayer.initVideo;
 		this.slot = this.wrapper.querySelector('[data-js="vpaid-slot"]');
-		this.vpaid = false;
+		this.vpaid = false;this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
 		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
 	};
 
+	VpaidPlayer.prototype._insertVideoTag = function _insertVideoTag() {
+		this.video.removeAttribute('style');
+		this.video.className = 'advPlayer_video';
+		this.wrapper.insertBefore(this.video, this.slot);
+	};
+
 	VpaidPlayer.prototype._load = function _load() {
-		var _this = this;
+		var _this2 = this;
 
 		this.loadScriptInIFrame(this.vast.mediaFile, function (iframe) {
-			var rect = _this.insert.getBoundingClientRect();
+			var rect = _this2.insert.getBoundingClientRect();
 
-			var qwe = function qwe() {
-				console.log(iframe.contentWindow.getVPAIDAd);
-				if (!iframe.contentWindow.getVPAIDAd) requestAnimationFrame(qwe);
-			};
+			if (!iframe.contentWindow.getVPAIDAd) {
+				/* связано с загрузкой ифрейм и переменной inDapIF */
+				console.error('iframe.contentWindow.getVPAIDAd отсутствует');
+				_this.del();
+				_this.oUPlayer._start();
+				return;
+			}
 
-			qwe();
+			_this2.vpaid = iframe.contentWindow.getVPAIDAd();
 
-			_this.vpaid = iframe.contentWindow.getVPAIDAd();
-
-			_this.vpaid.subscribe(function () {
+			_this2.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdLoaded (реклама загружена)");
-				_this.isAdLoaded = true;
-				_this.oUPlayer._checkInitPlayers();
+				_this2.isAdLoaded = true;
+				_this2.oUPlayer._start();
 				//vpaid.startAd();
 			}, "AdLoaded");
 
-			_this.vpaid.subscribe(function () {
-				console.log('uPlayer: VPAID событие AdStarted (реклама запущена)', _this.vast.statEventAll.creativeView);
-				_this._sendStat(_this.vast.statEventAll.creativeView, 'AdStarted');
+			_this2.vpaid.subscribe(function () {
+				console.log('uPlayer: VPAID событие AdStarted (реклама запущена)', _this2.vast.statEventAll.creativeView);
+				_this2._sendStat(_this2.vast.statEventAll.creativeView, 'AdStarted');
 			}, "AdStarted");
 
-			_this.vpaid.subscribe(function () {
+			_this2.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdImpression (начало реального просмотра)");
-				_this._sendStat(_this.vast.impressionAll, 'impression');
+				_this2._sendStat(_this2.vast.impressionAll, 'impression');
 			}, "AdImpression");
 
-			_this.vpaid.subscribe(function () {
+			_this2.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdVideoStart (старт рекламного видео)");
-				_this._sendStat(_this.vast.statEventAll['0'], 'start');
+				_this2._sendStat(_this2.vast.statEventAll['0'], 'start');
 			}, "AdVideoStart");
 
-			_this.vpaid.subscribe(function () {
+			_this2.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdVideoFirstQuartile (просмотрена первая четверть)");
-				_this._sendStat(_this.vast.statEventAll['25'], 'firstQuartile');
+				_this2._sendStat(_this2.vast.statEventAll['25'], 'firstQuartile');
 			}, "AdVideoFirstQuartile");
 
-			_this.vpaid.subscribe(function () {
+			_this2.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdVideoMidpoint (просмотрена вторая четверть)");
-				_this._sendStat(_this.vast.statEventAll['50'], 'midpoint');
+				_this2._sendStat(_this2.vast.statEventAll['50'], 'midpoint');
 			}, "AdVideoMidpoint");
 
-			_this.vpaid.subscribe(function () {
+			_this2.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdVideoThirdQuartile (просмотрена третья четверть)");
-				_this._sendStat(_this.vast.statEventAll['75'], 'thirdQuartile');
+				_this2._sendStat(_this2.vast.statEventAll['75'], 'thirdQuartile');
 			}, "AdVideoThirdQuartile");
 
-			_this.vpaid.subscribe(function () {
+			_this2.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdVideoComplete (просмотрена четвертая четверть)");
-				_this._sendStat(_this.vast.statEventAll['100'], 'complete');
+				_this2._sendStat(_this2.vast.statEventAll['100'], 'complete');
 			}, "AdVideoComplete");
 
-			_this.vpaid.subscribe(function () {
+			_this2.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdStopped (Показ рекламы окончен)");
-				_this._finish();
+				_this2._finish();
 			}, "AdStopped");
 
-			_this.vpaid.subscribe(function (url, uid, playerHandles) {
+			_this2.vpaid.subscribe(function (url, uid, playerHandles) {
 				console.log('uPlayer: VPAID событие AdClickThru (был осуществлён переход по рекламе)');
-				_this._sendStat(_this.vast.clickTrackingAll, 'clickTracking');
+				_this2._sendStat(_this2.vast.clickTrackingAll, 'clickTracking');
 				if (playerHandles) {
-					_this.isAdClickThru = true;
+					_this2.isAdClickThru = true;
 					//this._finish(true);
 					window.open(url);
 				}
 			}, "AdClickThru");
 
-			_this.vpaid.subscribe(function () {
+			_this2.vpaid.subscribe(function () {
 				console.log("VPAID: Реклама пропущена пользователем (AdSkipped)");
-				_this._finish();
+				_this2._finish();
 			}, "AdSkipped");
 
-			_this.vpaid.subscribe(function () {
+			_this2.vpaid.subscribe(function () {
 				console.log("uPlayer: VPAID событие AdUserClose (реклама закрыта пользователем)");
-				_this._finish();
+				_this2._finish();
 			}, "AdUserClose");
 
-			_this.vpaid.subscribe(function (data) {
+			_this2.vpaid.subscribe(function (data) {
 				console.log("uPlayer: VPAID событие AdError (Ошибка показа рекламы)");
-				_this._finish();
+				_this2._finish();
 			}, "AdError");
 
-			_this.vpaid.initAd(rect.width, rect.height, "normal", 0, {
-				AdParameters: _this.vast.AdParameters
+			_this2.vpaid.initAd(rect.width, rect.height, "normal", 0, {
+				AdParameters: _this2.vast.AdParameters
 			}, {
-				slot: _this.slot,
-				videoSlot: _this.video,
+				slot: _this2.slot,
+				videoSlot: _this2.video,
 				videoSlotCanAutoPlay: false //передавать true или false в зависимости от возможности программного автозапуска для данного элемента video
 			});
 		});
@@ -1697,24 +1974,30 @@ var VpaidPlayer = (function () {
 	VpaidPlayer.prototype.start = function start(data) {
 		/* TODO сейчас данные никакие не передаются, а сохраняются при инициализции плеера. Пока не знаю как лучше будет */
 		var self = this;
-		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active'; /* TODO */
 		this.vpaid.startAd();
 	};
 
 	VpaidPlayer.prototype._finish = function _finish() {
 		/* если пользователь щелкнул на рекламу - все останавливаем и дальше не продолжаем*/
-		//может срабатывать несколько раз, при AdStopped, AdError; TODO - мож покороче как нить..
+		//может срабатывать несколько раз, например, сначала срабатывает AdSkipped, а затем при AdStopped для поддержки видеоплееров с использованием более ранней версии VPAID
+		// TODO - мож покороче как нить..
+
 		if (this.isFinish) return;
 		this.isFinish = true;
 
+		this.oUPlayer.isShowAdv = false; /* TODO ??  */
+
+		console.log('this.isAdLoaded', this.isAdLoaded);
+
 		if (!this.isAdLoaded) {
-			this.oUPlayer._checkInitPlayers();
+			this.oUPlayer._start();
 			this.del();
 		} else {
 			var oUPlayer = this.oUPlayer;
 
 			if (this.isAdClickThru) {
-				/* был клик по рекламе */
+				/* был клик по рекламе, видео не запускаем, потому что в этот момент пользователь может смотреть рекламу */
 				this.oUPlayer._returnOriginalView('oVpaidPlayer');
 			} else {
 				if (oUPlayer.oYoutubePlayer) oUPlayer.oYoutubePlayer.start();else oUPlayer.oHTMLPlayer.start();
@@ -1749,7 +2032,8 @@ var VpaidPlayer = (function () {
 		iframe.style.left = "-90000px";
 
 		iframe.onload = function () {
-			//iframe.contentWindow.inDapIF = true;
+			//TODO wmg
+			iframe.contentWindow.inDapIF = true;
 			var script = document.createElement("script");
 			script.type = "text/javascript";
 			script.onload = function () {
@@ -1797,6 +2081,7 @@ var YoutubePlayer = (function () {
         this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="video"]');
         this.insert.innerHTML = '<iframe class="combinedPlayer_youtube" src="' + oUPlayer.data.youtube + '?enablejsapi=1" allowfullscreen="" frameborder="0"></iframe>';
         this.youtubeIframe = this.insert.firstChild;
+        this.isFullscreenMode = false; /* отслеживаем, этот ли плеер находится в полноэкранном режиме */
         var self = this;
 
         this.oUPlayer = oUPlayer;
@@ -1810,6 +2095,33 @@ var YoutubePlayer = (function () {
                 }
             }
         });
+
+        var eName = (function (doc) {
+            if ('onfullscreenchange' in doc) return 'fullscreenchange';
+            if ('onmozfullscreenchange' in doc) return 'mozfullscreenchange';
+            if ('onwebkitfullscreenchange' in doc) return 'webkitfullscreenchange';
+            if ('onmsfullscreenchange' in doc) return 'msfullscreenchange'; //MSFullscreenChange
+            return false;
+        })(document);
+
+        var fullscreenElement = (function (doc) {
+            if ('fullscreenElement' in doc) return 'fullscreenElement';
+            if ('mozFullScreenElement' in doc) return 'mozFullScreenElement';
+            if ('webkitFullscreenElement' in doc) return 'webkitFullscreenElement';
+            if ('msFullscreenElement' in doc) return 'msFullscreenElement';
+            return false;
+        })(document);
+
+        document.addEventListener(eName, function (e) {
+            if (document[fullscreenElement] == self.youtubeIframe) {
+                self.isFullscreenMode = true;
+                oUPlayer._onFullscreen('youtube');
+            } else if (self.isFullscreenMode === true) {
+                //этот плеер находился в полноэкранном режиме
+                self.isFullscreenMode = false;
+                oUPlayer._onFullscreenExit('youtube');
+            }
+        });
     }
 
     YoutubePlayer.prototype._onPlayerStateChange = function _onPlayerStateChange(event) {
@@ -1819,10 +2131,14 @@ var YoutubePlayer = (function () {
                 if (document.exitFullscreen) return 'exitFullscreen';else if (document.mozCancelFullScreen) return 'mozCancelFullScreen';else if (document.webkitCancelFullScreen) return 'webkitCancelFullScreen';else if (document.msExitFullscreen) return 'msExitFullscreen';
                 return false;
             })();
+
             //выходим из фуллскрина
-            try {
-                document[exit]();
-            } catch (e) {};
+            if (self.isFullscreenMode) {
+                try {
+                    document[exit]();
+                } catch (e) {};
+            }
+
             this.afterEnd();
         }
     };
@@ -2127,11 +2443,27 @@ exports['default'] = (function (root, doc) {
     };
 
     uPlayer.isMobile = (function () {
+        /* TODO есть еще mobileAgent оставить его наверное */
+
         try {
             return APP.vars.isMobile;
         } catch (e) {
             return false;
         }
+    })();
+
+    uPlayer.mobileAgent = (function () {
+        var agentAll = ['ipod', 'iphone', 'ipad', 'android', 'blackberry'],
+            i = 0;
+
+        for (i; i < agentAll.length; i++) {
+            var re = new RegExp(agentAll[i], 'i');
+            if (re.test(navigator.userAgent)) {
+                var system = i < 3 ? 'IOS' : 'notIOS'; /* TODO */
+                return { 'name': agentAll[i], 'system': system };
+            }
+        }
+        return false;
     })();
 
     uPlayer.isNeedActivation = (function () {

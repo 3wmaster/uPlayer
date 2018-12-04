@@ -26,7 +26,9 @@ class VASTTag {
 		}
 
 		this._getAdTag(path, (adTag) => {
-			if(!adTag){
+            /* TODO может быть несколько креативов 'Creative' итд В общем сделать нормальный разбор */
+
+            if(!adTag){
 				console.error('uPlayer', 'пустой тег или <nobanner></nobanner>');
 				this.param.onError();
 			}
@@ -58,7 +60,8 @@ class VASTTag {
 					else {
 						this.data.mediaFile = advFile.file;
 						if(advFile.type == 'mp4'){
-							this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+                            this.data.skipoffset = this._getSkipoffset(adTag);
+                            this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 							this.param.onVast(this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
 						}
 						else {
@@ -151,7 +154,6 @@ class VASTTag {
 
 	_getAdTag(path, callback){
 		console.log('get ad tag');
-		path = path + '&rnd=' + new Date().getTime();
 		/* TODO почему то не работает */
 		//if(this.xhr) return; /* на всякий */
 		this.xhr = new XMLHttpRequest();
@@ -183,6 +185,21 @@ class VASTTag {
 	_getAdURI(tag){
 		return tag.querySelector('VASTAdTagURI').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
 	}
+
+    _getSkipoffset(tag) {
+        var skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
+        if (!skipoffset) return 5;
+
+        //
+        if (skipoffset.indexOf('%') === -1) {
+            var arr = skipoffset.split(':');
+            var seconds = arr[0] * 60 * 60 + arr[1] * 60 + arr[2] * 1;
+            return seconds;
+        } else {
+            /* TODO % */
+            return 5;
+        }
+    };
 }
 export {VASTTag}
 

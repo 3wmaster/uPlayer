@@ -10,12 +10,13 @@ var _default = (function () {
 		_classCallCheck(this, _default);
 
 		this._createElements(oUPlayer, data);
+		this._insertVideoTag();
 		this._addEventsName();
 		this._addEvents();
 	}
 
 	_default.prototype._getHtml = function _getHtml() {
-		return '<div data-js="adv-player" class="advPlayer">' + '<video data-js="adv-video" class="advPlayer_video"></video>' + '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank"></a>' + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
+		return '<div data-js="adv-player" class="advPlayer">' + '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank"></a>' + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
 	};
 
 	_default.prototype._createElements = function _createElements(oUPlayer, data) {
@@ -25,7 +26,7 @@ var _default = (function () {
 		this.insert.innerHTML = this._getHtml();
 		this.wrapper = this.insert.firstChild;
 		this.param = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
-		this.video = this.wrapper.querySelector('[data-js="adv-video"]');
+		this.video = oUPlayer.initVideo;
 		this.clickingBtn = this.wrapper.querySelector('[data-js="adv-clicking-btn"]');
 		this.skipBtn = this.wrapper.querySelector('[data-js="adv-skip-btn"]');
 		this.advLeft = this.wrapper.querySelector('[data-js="adv-left"]');
@@ -33,6 +34,12 @@ var _default = (function () {
 		this.userAgent = this._defineUserAgent();
 		this.keyFrameAll = []; //массив времени в %  когда отпраляется стата - 0% 25% 50% 75% 100%
 		this.statEventAll = {}; //все типы событий по которым отправляется стата, ключ - src
+	};
+
+	_default.prototype._insertVideoTag = function _insertVideoTag() {
+		this.video.removeAttribute('style');
+		this.video.className = 'advPlayer_video';
+		this.wrapper.insertBefore(this.video, this.clickingBtn);
 	};
 
 	_default.prototype._defineUserAgent = function _defineUserAgent() {
@@ -119,7 +126,7 @@ var _default = (function () {
 	_default.prototype._updateTimeCur = function _updateTimeCur(sec) {
 		var leftTime = Math.floor(this.video.duration - sec),
 		    text = leftTime ? 'Осталось ' + leftTime + 'сек' : '&nbsp;',
-		    skipTime = Math.round(5 - sec);
+		    skipTime = Math.round(this.data.skipoffset - sec);
 
 		this.advLeft.innerHTML = text;
 
@@ -160,21 +167,7 @@ var _default = (function () {
 	_default.prototype._ready = function _ready() {
 		var self = this;
 
-		//this.video.muted = false;
-
-		/*if( this.userAgent === 'iphone'){
-  	this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active advPlayer-before';
-  	setTimeout(function(){
-  		self.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-  		self.video.play();
-  	}, 1500);
-  }
-  else {
-  	this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
-  	this.video.play();
-  }*/
-
-		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active';
+		this.wrapper.className = 'advPlayer advPlayer-ready advPlayer-active'; /* TODO */
 		this.video.play();
 
 		//this.video.muted = false;
