@@ -54,14 +54,14 @@ class VASTTag {
 					var advFile = this._getAdvFile(adTag);
 
 					if(!advFile){
-						console.error('uPlayer', 'Не найдено нужного формата -  mp4 или VPAID');
+						//console.error('uPlayer', 'Не найдено нужного формата -  mp4 или VPAID');
 						this.param.onError();
 					}
 					else {
 						this.data.mediaFile = advFile.file;
 						if(advFile.type == 'mp4'){
                             this.data.skipoffset = this._getSkipoffset(adTag);
-                            this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+                            this.data.clickThrough = videoClicksTag ? videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '') : undefined;
 							this.param.onVast(this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
 						}
 						else {

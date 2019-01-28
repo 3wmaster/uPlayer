@@ -230,7 +230,7 @@ var _jsHTMLPlayer2 = _interopRequireDefault(_jsHTMLPlayer);
 
 var _jsAdvPlayer = require('../js/AdvPlayer');
 
-var _jsAdvPlayer3 = _interopRequireDefault(_jsAdvPlayer);
+var _jsAdvPlayer2 = _interopRequireDefault(_jsAdvPlayer);
 
 var _jsYoutubePlayer = require('../js/YoutubePlayer');
 
@@ -583,6 +583,16 @@ var CombinedPlayer = (function () {
             pathVihub = '//vast.vihub.ru/?plid=1176&startdelay=0&ref=' + url,
             pathXameleon = '//ssp.xameleon.io/?VyuED9ftSXPwzmOgOOyqDGAn6N/b4XZgKdJ7fu/5cpLNaadEDRpsYeunQNw8ykBq0j9oahcMAomAMfc3EtdLOsv2AQcnB8ipDARNGsO2lqs=',
             pathZetcat = '//3647.tech/vpaid/?domain=www.kinoafisha1.info',
+            pathMediaForce = '//ads.adfox.ru/220463/getCode?p1=cdbyb&p2=frxu',
+            pathIMXO = 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=20651&dl=http://kinoafisha/test/:' + url,
+            pathIMXO = (function () {
+            var pr = curTime;
+            var placementId = 20651;
+            var sessionId = new Date().time + "" + Math.floor(Math.random() * 2147483647);
+            var eid1 = placementId + ':' + sessionId + ':' + pr;
+            //
+            return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=20651&pr=' + pr + '&dl=http://kinoafisha/test/:' + url + '&eid1=' + eid1;
+        })(),
             pathes = {
             'RCA': pathYandex,
             'Videonow': pathVideonow,
@@ -595,7 +605,9 @@ var CombinedPlayer = (function () {
             'Booster': pathBooster,
             'MarketPlace': pathMarketPlace,
             'Vihub': pathVihub,
-            'Zetcat': pathZetcat
+            'Zetcat': pathZetcat,
+            'MediaForce': pathMediaForce,
+            'IMXO': pathIMXO
         },
             agents = (function () {
             if (self.data.ads.agents) {
@@ -756,6 +768,7 @@ var CombinedPlayer = (function () {
 
     CombinedPlayer.prototype._onSuccessGetAdvData = function _onSuccessGetAdvData(data) {
         var self = this;
+
         self.oAdvPlayer = new _jsAdvPlayer2['default'](self, data); /* при создании объекта проиходит вставка нужной разметки и инициализация плеера.(IOS) Сами Данные не вставляются */
         self.oAdvPlayer.afterEnd = function () {
             if (self.oYoutubePlayer) self.oYoutubePlayer.start();else self.oHTMLPlayer.start();
@@ -1682,7 +1695,7 @@ var VASTTag = (function () {
 						_this.data.mediaFile = advFile.file;
 						if (advFile.type == 'mp4') {
 							_this.data.skipoffset = _this._getSkipoffset(adTag);
-							_this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+							_this.data.clickThrough = videoClicksTag ? videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '') : undefined;
 							_this.param.onVast(_this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
 						} else {
 								var AdParameters = adTag.querySelector('AdParameters');
@@ -2122,6 +2135,12 @@ var YoutubePlayer = (function () {
                 oUPlayer._onFullscreenExit('youtube');
             }
         });
+
+        setInterval(function () {
+            if (document[fullscreenElement]) {
+                console.log('Элемент в полноэкранном режиме', document[fullscreenElement]);
+            }
+        }, 100);
     }
 
     YoutubePlayer.prototype._onPlayerStateChange = function _onPlayerStateChange(event) {

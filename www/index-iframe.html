@@ -24,13 +24,25 @@
 <body>
 
 <iframe style="width:500px;height:300px;" src="iframe.html"></iframe>
+<div id="test"></div>
 <script>
-    window.addEventListener('message', function(e){
-        var data = JSON.parse(e.data);
-        if(data.uPLayer && data.event==='ended'){
-            console.log('Видео закончилось');
-        }
-    });
+    (function(root, doc){
+        var testEl = doc.getElementById('test');
+
+        window.addEventListener('message', function(e){
+            var data = JSON.parse(e.data);
+            var eName = data.event
+            var text = '';
+
+            if(data.uPLayer && eName){
+                if(eName==='ended') text = 'Видео закончилось';
+                else if(eName==='fullscreenOn') text = 'Полноэкранный режим включен';
+                else if(eName==='fullscreenOff') text = 'Полноэкранный режим выключен';
+
+                if(text) testEl.innerHTML = testEl.innerHTML + text + '<br />';
+            }
+        });
+    })(window, document);
 </script>
 
 </body>

@@ -20,13 +20,14 @@
     height:100%;
     background-size:cover;
     background-position: 50% 50%;
+    object-fit:cover;
     transition: .5s;
   }
 
   &_shadow {
     position:absolute;
     left:0;
-    top:0;
+    bottom:-1px;
     display:block;
     width:100%;
     height:100%;
@@ -177,9 +178,10 @@
       width: 12%;
       padding-top: 12%;
       margin: -8% 0 0 -6%;
-      background-color: #fff;
+      opacity:.3;
+      /*background-color: #fff;
       background-color: rgba(255,255,255,.2);
-      border-radius: 50%;
+      border-radius: 50%;*/
     }
 
     &_symbol {
@@ -194,8 +196,8 @@
       transition: fill .7s;
     }
 
-    &:hover .combinedPlayer_playBtn_symbol {
-      fill: #cd250e;
+    &:hover .combinedPlayer_playBtn_circle {
+      opacity:1;
     }
   }
 
@@ -341,28 +343,13 @@
       }
 
       &_allVideoLink {
-        position: relative;
-        left: 0;
-        top: 0;
         display: inline-block;
         vertical-align:top;
-        min-height: 2.272em;
-        margin:0 0 0 .77em;
-        padding: .4em 1em;
-        border: 1px solid transparent;
-        background: rgba(255,255,255,.3);
-        color:#fff;
-        border-radius: 1.3em;
-        box-sizing: border-box;
         font-size: .87em;
         font-weight: 700;
-        transition: background-color .7s,border-color .7s,color .7s;
         text-decoration:none;
-
-        &:hover {
-          background-color:#cd250e;
-          color:#fff;
-        }
+        color:rgba(255,255,255,.6);
+        margin:.54em 0 0 .77em;
       }
     }
   }

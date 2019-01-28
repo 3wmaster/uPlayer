@@ -53,6 +53,12 @@ var YoutubePlayer = (function () {
                 oUPlayer._onFullscreenExit('youtube');
             }
         });
+
+        setInterval(function () {
+            if (document[fullscreenElement]) {
+                console.log('Элемент в полноэкранном режиме', document[fullscreenElement]);
+            }
+        }, 100);
     }
 
     YoutubePlayer.prototype._onPlayerStateChange = function _onPlayerStateChange(event) {

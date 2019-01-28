@@ -62,13 +62,13 @@ var VASTTag = (function () {
 					var advFile = _this._getAdvFile(adTag);
 
 					if (!advFile) {
-						console.error('uPlayer', 'Не найдено нужного формата -  mp4 или VPAID');
+						//console.error('uPlayer', 'Не найдено нужного формата -  mp4 или VPAID');
 						_this.param.onError();
 					} else {
 						_this.data.mediaFile = advFile.file;
 						if (advFile.type == 'mp4') {
 							_this.data.skipoffset = _this._getSkipoffset(adTag);
-							_this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+							_this.data.clickThrough = videoClicksTag ? videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '') : undefined;
 							_this.param.onVast(_this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
 						} else {
 								var AdParameters = adTag.querySelector('AdParameters');
