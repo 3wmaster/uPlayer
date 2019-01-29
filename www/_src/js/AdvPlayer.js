@@ -7,19 +7,21 @@ export default class{
 		this._addEvents();
 	}
 
-    _getHtml(){
-        return  '<div data-js="adv-player" class="advPlayer">' + '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank"></a>' + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
+    _getHtml(data){
+		/* in theory links may not be */
+		var clickingBtn = '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank">&nbsp;</a>';
+        return  '<div data-js="adv-player" class="advPlayer">' + clickingBtn + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
     }
 
 	_createElements(oUPlayer, data){
         this.oUPlayer = oUPlayer;
         this.data = data;
         this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="adv"]');
-        this.insert.innerHTML = this._getHtml();
+        this.insert.innerHTML = this._getHtml(data);
         this.wrapper = this.insert.firstChild;
         this.param = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
 		this.video = oUPlayer.initVideo;
-		this.clickingBtn = this.wrapper.querySelector('[data-js="adv-clicking-btn"]');
+		this.clickingBtn = data.clickThrough ? this.wrapper.querySelector('[data-js="adv-clicking-btn"]') : undefined;
 		this.skipBtn = this.wrapper.querySelector('[data-js="adv-skip-btn"]');
 		this.advLeft = this.wrapper.querySelector('[data-js="adv-left"]');
 		this.format = 'mp4';
@@ -31,7 +33,7 @@ export default class{
     _insertVideoTag() {
         this.video.removeAttribute('style');
         this.video.className = 'advPlayer_video';
-        this.wrapper.insertBefore(this.video, this.clickingBtn);
+        this.wrapper.insertBefore(this.video, this.wrapper.firstElementChild);
     };
 
 	_defineUserAgent(){
@@ -82,8 +84,10 @@ export default class{
 			return false;
 		}
 
-		this.clickingBtn.onclick = function(){
-			self._clicking.call(self);
+		if(this.clickingBtn){
+            this.clickingBtn.onclick = function(){
+                self._clicking.call(self);
+            }
 		}
 	}
 
@@ -110,7 +114,8 @@ export default class{
         var source = document.createElement('SOURCE');
 
         //
-        this.clickingBtn.setAttribute('href', data.clickThrough);
+		console.log('this.clickingBtn', this.clickingBtn);
+        if(this.clickingBtn) this.clickingBtn.setAttribute('href', data.clickThrough);
 		this.video.innerHTML = '';
 		source.setAttribute('src', data.mediaFile);
 		source.setAttribute('type', 'video/' + this.format);

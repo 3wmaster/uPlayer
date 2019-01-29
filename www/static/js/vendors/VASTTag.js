@@ -50,6 +50,14 @@ var VASTTag = (function () {
 				    trackingEventsTag = adTag.querySelector('TrackingEvents');
 
 				//
+				_this.data.clickThrough = (function () {
+					try {
+						return videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+					} catch (e) {
+						return undefined;
+					}
+				})();
+
 				if (clickTrackingAll) _this._pushCDATA(clickTrackingAll, 'clickTrackingAll');
 				if (impressionAll.length) _this._pushCDATA(impressionAll, 'impressionAll');
 				if (trackingEventsTag) _this._pushTrackingEvents(trackingEventsTag);
@@ -68,7 +76,14 @@ var VASTTag = (function () {
 						_this.data.mediaFile = advFile.file;
 						if (advFile.type == 'mp4') {
 							_this.data.skipoffset = _this._getSkipoffset(adTag);
-							_this.data.clickThrough = videoClicksTag ? videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '') : undefined;
+							_this.data.clickThrough = (function () {
+								//TODO if(this.data.clickThrough) return this.data.clickThrough;
+								try {
+									return videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+								} catch (e) {
+									return undefined;
+								}
+							})();
 							_this.param.onVast(_this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
 						} else {
 								var AdParameters = adTag.querySelector('AdParameters');
