@@ -105,9 +105,10 @@ var _default = (function () {
 	};
 
 	_default.prototype._clicking = function _clicking() {
-		this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
-		this.video.pause();
-		this.afterClicking();
+		console.log('ads clicking');
+		//this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
+		//this.video.pause();
+		//this.afterClicking();
 	};
 
 	_default.prototype._endCallback = function _endCallback() {
@@ -787,7 +788,7 @@ var CombinedPlayer = (function () {
             self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         };
         self.oAdvPlayer.afterClicking = function () {
-            //console.log('ads clicking');
+            /* отключил, продалжаем проигрывание после клика */
             self.oAdvPlayer.abort();
             self._returnOriginalView.call(self, 'oAdvPlayer');
         };

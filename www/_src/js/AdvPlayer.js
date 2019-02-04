@@ -100,9 +100,10 @@ export default class{
 	}
 
 	_clicking(){
-		this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
-		this.video.pause();
-		this.afterClicking();
+        console.log('ads clicking');
+        //this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
+		//this.video.pause();
+		//this.afterClicking();
 	}
 
 	_endCallback(){

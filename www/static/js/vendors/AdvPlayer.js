@@ -105,9 +105,10 @@ var _default = (function () {
 	};
 
 	_default.prototype._clicking = function _clicking() {
-		this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
-		this.video.pause();
-		this.afterClicking();
+		console.log('ads clicking');
+		//this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
+		//this.video.pause();
+		//this.afterClicking();
 	};
 
 	_default.prototype._endCallback = function _endCallback() {

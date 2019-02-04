@@ -559,7 +559,7 @@ var CombinedPlayer =  class {
             self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         };
         self.oAdvPlayer.afterClicking = function () {
-            //console.log('ads clicking');
+            /* отключил, продалжаем проигрывание после клика */
             self.oAdvPlayer.abort();
             self._returnOriginalView.call(self, 'oAdvPlayer');
         };
