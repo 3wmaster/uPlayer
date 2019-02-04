@@ -267,7 +267,7 @@ var CombinedPlayer =  class {
             url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
             pathYandexTest = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=https://kinoafisha.info&page-ref=https://kinoafisha.info',
             pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=' + url + '&page-ref=' + url + '&rnd=' + curTime,
-            pathVastGoogleTest = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
+            pathVastGoogleTest = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
 
             //Можно использовать даже боевой тег, добавив в него параметры- вот так http://data.videonow.ru/?profile_id=695851&format=vast&vpaid=1&flash=0 - отдается наш JS-VPID
             pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
@@ -361,15 +361,15 @@ var CombinedPlayer =  class {
             pathXameleon = '//ssp.xameleon.io/?VyuED9ftSXPwzmOgOOyqDGAn6N/b4XZgKdJ7fu/5cpLNaadEDRpsYeunQNw8ykBq0j9oahcMAomAMfc3EtdLOsv2AQcnB8ipDARNGsO2lqs=',
             pathZetcat = '//3647.tech/vpaid/?domain=www.kinoafisha1.info',
             pathMediaForce = '//ads.adfox.ru/220463/getCode?p1=cdbyb&p2=frxu',
-            pathIMXO = 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=20651&dl=http://kinoafisha/test/:' + url,
             pathIMXO = (function(){
-                var pr = curTime;
+                var pr = Math.floor(new Date().getTime/1000) + Math.floor(Math.random()*214748364);
                 var placementId = 20651;
-                var sessionId = new Date().time + "" + Math.floor(Math.random()*2147483647);
+                var sessionId = new Date().getTime() + "" + Math.floor(Math.random()*2147483647);
                 var eid1 = placementId + ':' + sessionId + ':' + pr;
                 //
-                return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=20651&pr='+ pr +'&dl=http://kinoafisha/test/:' + url + '&eid1=' + eid1;
+                return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30='+placementId+'&pr='+ pr +'&dl=http://kinoafisha/test/:' + url + '&eid1=' + eid1;
             })(),
+            pathTestInline = '/vast/inline.xml',
             pathes = {
                 'RCA': pathYandex,
                 'Videonow': pathVideonow,
@@ -384,7 +384,8 @@ var CombinedPlayer =  class {
                 'Vihub': pathVihub,
                 'Zetcat': pathZetcat,
                 'MediaForce': pathMediaForce,
-                'IMXO': pathIMXO
+                'IMXO': pathIMXO,
+                'TestInline': pathTestInline
             },
             agents = (function () {
                 if (self.data.ads.agents) {
@@ -558,6 +559,7 @@ var CombinedPlayer =  class {
             self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         };
         self.oAdvPlayer.afterClicking = function () {
+            //console.log('ads clicking');
             self.oAdvPlayer.abort();
             self._returnOriginalView.call(self, 'oAdvPlayer');
         };

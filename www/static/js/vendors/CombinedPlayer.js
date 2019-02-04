@@ -15,19 +15,21 @@ var _default = (function () {
 		this._addEvents();
 	}
 
-	_default.prototype._getHtml = function _getHtml() {
-		return '<div data-js="adv-player" class="advPlayer">' + '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank"></a>' + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
+	_default.prototype._getHtml = function _getHtml(data) {
+		/* in theory links may not be */
+		var clickingBtn = '<a data-js="adv-clicking-btn" class="advPlayer_link" target="_blank">&nbsp;</a>';
+		return '<div data-js="adv-player" class="advPlayer">' + clickingBtn + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
 	};
 
 	_default.prototype._createElements = function _createElements(oUPlayer, data) {
 		this.oUPlayer = oUPlayer;
 		this.data = data;
 		this.insert = oUPlayer.wrapper.querySelector('[data-CombinedPlayer-insert="adv"]');
-		this.insert.innerHTML = this._getHtml();
+		this.insert.innerHTML = this._getHtml(data);
 		this.wrapper = this.insert.firstChild;
 		this.param = JSON.parse(oUPlayer.wrapper.getAttribute('data-param'));
 		this.video = oUPlayer.initVideo;
-		this.clickingBtn = this.wrapper.querySelector('[data-js="adv-clicking-btn"]');
+		this.clickingBtn = data.clickThrough ? this.wrapper.querySelector('[data-js="adv-clicking-btn"]') : undefined;
 		this.skipBtn = this.wrapper.querySelector('[data-js="adv-skip-btn"]');
 		this.advLeft = this.wrapper.querySelector('[data-js="adv-left"]');
 		this.format = 'mp4';
@@ -39,7 +41,7 @@ var _default = (function () {
 	_default.prototype._insertVideoTag = function _insertVideoTag() {
 		this.video.removeAttribute('style');
 		this.video.className = 'advPlayer_video';
-		this.wrapper.insertBefore(this.video, this.clickingBtn);
+		this.wrapper.insertBefore(this.video, this.wrapper.firstElementChild);
 	};
 
 	_default.prototype._defineUserAgent = function _defineUserAgent() {
@@ -87,9 +89,11 @@ var _default = (function () {
 			return false;
 		};
 
-		this.clickingBtn.onclick = function () {
-			self._clicking.call(self);
-		};
+		if (this.clickingBtn) {
+			this.clickingBtn.onclick = function () {
+				self._clicking.call(self);
+			};
+		}
 	};
 
 	_default.prototype._skip = function _skip() {
@@ -115,7 +119,8 @@ var _default = (function () {
 		var source = document.createElement('SOURCE');
 
 		//
-		this.clickingBtn.setAttribute('href', data.clickThrough);
+		console.log('this.clickingBtn', this.clickingBtn);
+		if (this.clickingBtn) this.clickingBtn.setAttribute('href', data.clickThrough);
 		this.video.innerHTML = '';
 		source.setAttribute('src', data.mediaFile);
 		source.setAttribute('type', 'video/' + this.format);
@@ -490,7 +495,7 @@ var CombinedPlayer = (function () {
             url = encodeURIComponent(location.protocol + '//' + location.hostname + location.pathname),
             pathYandexTest = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=https://kinoafisha.info&page-ref=https://kinoafisha.info',
             pathYandex = 'https://an.yandex.ru/meta/168554?imp-id=2&charset=UTF-8&target-ref=' + url + '&page-ref=' + url + '&rnd=' + curTime,
-            pathVastGoogleTest = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
+            pathVastGoogleTest = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=',
 
         //Можно использовать даже боевой тег, добавив в него параметры- вот так http://data.videonow.ru/?profile_id=695851&format=vast&vpaid=1&flash=0 - отдается наш JS-VPID
         pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
@@ -584,15 +589,15 @@ var CombinedPlayer = (function () {
             pathXameleon = '//ssp.xameleon.io/?VyuED9ftSXPwzmOgOOyqDGAn6N/b4XZgKdJ7fu/5cpLNaadEDRpsYeunQNw8ykBq0j9oahcMAomAMfc3EtdLOsv2AQcnB8ipDARNGsO2lqs=',
             pathZetcat = '//3647.tech/vpaid/?domain=www.kinoafisha1.info',
             pathMediaForce = '//ads.adfox.ru/220463/getCode?p1=cdbyb&p2=frxu',
-            pathIMXO = 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=20651&dl=http://kinoafisha/test/:' + url,
             pathIMXO = (function () {
-            var pr = curTime;
+            var pr = Math.floor(new Date().getTime / 1000) + Math.floor(Math.random() * 214748364);
             var placementId = 20651;
-            var sessionId = new Date().time + "" + Math.floor(Math.random() * 2147483647);
+            var sessionId = new Date().getTime() + "" + Math.floor(Math.random() * 2147483647);
             var eid1 = placementId + ':' + sessionId + ':' + pr;
             //
-            return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=20651&pr=' + pr + '&dl=http://kinoafisha/test/:' + url + '&eid1=' + eid1;
+            return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=' + placementId + '&pr=' + pr + '&dl=http://kinoafisha/test/:' + url + '&eid1=' + eid1;
         })(),
+            pathTestInline = '/vast/inline.xml',
             pathes = {
             'RCA': pathYandex,
             'Videonow': pathVideonow,
@@ -607,7 +612,8 @@ var CombinedPlayer = (function () {
             'Vihub': pathVihub,
             'Zetcat': pathZetcat,
             'MediaForce': pathMediaForce,
-            'IMXO': pathIMXO
+            'IMXO': pathIMXO,
+            'TestInline': pathTestInline
         },
             agents = (function () {
             if (self.data.ads.agents) {
@@ -781,6 +787,7 @@ var CombinedPlayer = (function () {
             self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         };
         self.oAdvPlayer.afterClicking = function () {
+            //console.log('ads clicking');
             self.oAdvPlayer.abort();
             self._returnOriginalView.call(self, 'oAdvPlayer');
         };
@@ -1677,6 +1684,14 @@ var VASTTag = (function () {
 				    trackingEventsTag = adTag.querySelector('TrackingEvents');
 
 				//
+				_this.data.clickThrough = (function () {
+					try {
+						return videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+					} catch (e) {
+						return undefined;
+					}
+				})();
+
 				if (clickTrackingAll) _this._pushCDATA(clickTrackingAll, 'clickTrackingAll');
 				if (impressionAll.length) _this._pushCDATA(impressionAll, 'impressionAll');
 				if (trackingEventsTag) _this._pushTrackingEvents(trackingEventsTag);
@@ -1689,13 +1704,20 @@ var VASTTag = (function () {
 					var advFile = _this._getAdvFile(adTag);
 
 					if (!advFile) {
-						console.error('uPlayer', 'Не найдено нужного формата -  mp4 или VPAID');
+						//console.error('uPlayer', 'Не найдено нужного формата -  mp4 или VPAID');
 						_this.param.onError();
 					} else {
 						_this.data.mediaFile = advFile.file;
 						if (advFile.type == 'mp4') {
 							_this.data.skipoffset = _this._getSkipoffset(adTag);
-							_this.data.clickThrough = videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+							_this.data.clickThrough = (function () {
+								//TODO if(this.data.clickThrough) return this.data.clickThrough;
+								try {
+									return videoClicksTag.querySelector('ClickThrough').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+								} catch (e) {
+									return undefined;
+								}
+							})();
 							_this.param.onVast(_this.data); /* все получено, всего хватает, можно запускать рекламу mp4 */
 						} else {
 								var AdParameters = adTag.querySelector('AdParameters');
