@@ -202,17 +202,39 @@ class VASTTag {
 	}
 
     _getSkipoffset(tag) {
-        var skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
-        if (!skipoffset) return 5;
+		var offset = undefined,
+			skipoffset = undefined,
+			skipTime = undefined,
+			def = 5;
+
+        skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
+        if (!skipoffset){
+        	var ext = tag.querySelector('Extensions');
+        	if(ext){
+                skipTime = ext.querySelector('Extension[type*="skipTime"]').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, ''); //skipTime and skipTime2 TODO
+				if(skipTime) offset = skipTime;
+        	}
+		} else offset = skipoffset;
+
+        if (!offset) return def;
 
         //
-        if (skipoffset.indexOf('%') === -1) {
-            var arr = skipoffset.split(':');
-            var seconds = arr[0] * 60 * 60 + arr[1] * 60 + arr[2] * 1;
+        if (offset.indexOf('%') === -1) {
+            var arr = offset.split(':'),
+				l = arr.length,
+				seconds = undefined;
+
+            if(l == 2){ // время без часов TODO в цикле
+                seconds = parseInt(arr[0]) * 60 + parseInt(arr[1]) * 1;
+            } else {
+                seconds = parseInt(arr[0]) * 60 * 60 + parseInt(arr[1]) * 60 + parseInt(arr[2]) * 1;
+			}
+
+			if(seconds == undefined) seconds = def;
             return seconds;
         } else {
             /* TODO % */
-            return 5;
+            return def;
         }
     };
 }

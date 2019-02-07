@@ -1,6 +1,7 @@
 
 export default class{
 	constructor(oUPlayer, data){
+		console.log('AdvPlayer', data);
 		this._createElements(oUPlayer, data);
         this._insertVideoTag();
 		this._addEventsName();
@@ -92,7 +93,7 @@ export default class{
 	}
 
 	_skip(){
-		if(this.skipBtn.innerHTML !== 'Пропустить') return false;
+		if(this.skipBtn && this.skipBtn.innerHTML !== 'Пропустить') return false;
 
 		this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
 		this.video.pause();
@@ -115,7 +116,6 @@ export default class{
         var source = document.createElement('SOURCE');
 
         //
-		console.log('this.clickingBtn', this.clickingBtn);
         if(this.clickingBtn) this.clickingBtn.setAttribute('href', data.clickThrough);
 		this.video.innerHTML = '';
 		source.setAttribute('src', data.mediaFile);
@@ -125,14 +125,24 @@ export default class{
 	}
 
 	_updateTimeCur(sec){
-		var leftTime = Math.floor(this.video.duration - sec),
+		var dur = this.video.duration,
+			offset = this.data.skipoffset,
+			leftTime = Math.floor(dur - sec),
 			text = leftTime ? ('Осталось ' + leftTime + 'сек') : '&nbsp;',
-            skipTime = Math.round(this.data.skipoffset - sec);
+            skipTime = Math.round(offset - sec);
 
 		this.advLeft.innerHTML = text;
 
-		if(skipTime > 0 && this.userAgent !== 'iphone') this.skipBtn.innerHTML = 'Пропустить через ' + skipTime; //В айфоне всегда можно закрыть
-		else this.skipBtn.innerHTML = 'Пропустить';
+		if(this.skipBtn && this.skipBtn.innerHTML != 'Пропустить'){
+			if(offset >= dur){
+                this.skipBtn.style.display = 'none';
+                this.skipBtn = undefined; /* TODO - удалить по уму */
+			} else {
+                if(skipTime > 0 && this.userAgent !== 'iphone') this.skipBtn.innerHTML = 'Пропустить через ' + skipTime; //В айфоне всегда можно закрыть
+                else this.skipBtn.innerHTML = 'Пропустить';
+			}
+		}
+
         this._checkStat();
 	}
 

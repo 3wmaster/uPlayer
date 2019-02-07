@@ -26,7 +26,8 @@ var VpaidPlayer = (function () {
 		this.wrapper = this.insert.firstChild;
 		this.video = oUPlayer.initVideo;
 		this.slot = this.wrapper.querySelector('[data-js="vpaid-slot"]');
-		this.vpaid = false;this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
+		this.vpaid = false;
+		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
 		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */

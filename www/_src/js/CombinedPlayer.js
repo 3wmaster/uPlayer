@@ -362,14 +362,15 @@ var CombinedPlayer =  class {
             pathZetcat = '//3647.tech/vpaid/?domain=www.kinoafisha1.info',
             pathMediaForce = '//ads.adfox.ru/220463/getCode?p1=cdbyb&p2=frxu',
             pathIMXO = (function(){
-                var pr = Math.floor(new Date().getTime/1000) + Math.floor(Math.random()*214748364);
+                var pr = Math.floor(new Date().getTime()/1000) + Math.floor(Math.random()*214748364);
                 var placementId = 20651;
                 var sessionId = new Date().getTime() + "" + Math.floor(Math.random()*2147483647);
                 var eid1 = placementId + ':' + sessionId + ':' + pr;
+
                 //
                 return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30='+placementId+'&pr='+ pr +'&dl=http://kinoafisha/test/:' + url + '&eid1=' + eid1;
             })(),
-            pathTestInline = '/vast/inline.xml',
+            pathTestInline = '/vast/skipTime2.xml',
             pathes = {
                 'RCA': pathYandex,
                 'Videonow': pathVideonow,

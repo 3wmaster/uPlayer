@@ -9,6 +9,7 @@ var _default = (function () {
 	function _default(oUPlayer, data) {
 		_classCallCheck(this, _default);
 
+		console.log('AdvPlayer', data);
 		this._createElements(oUPlayer, data);
 		this._insertVideoTag();
 		this._addEventsName();
@@ -97,7 +98,7 @@ var _default = (function () {
 	};
 
 	_default.prototype._skip = function _skip() {
-		if (this.skipBtn.innerHTML !== 'Пропустить') return false;
+		if (this.skipBtn && this.skipBtn.innerHTML !== 'Пропустить') return false;
 
 		this.wrapper.className = this.wrapper.className.replace(/\s*advPlayer-active/, '');
 		this.video.pause();
@@ -120,7 +121,6 @@ var _default = (function () {
 		var source = document.createElement('SOURCE');
 
 		//
-		console.log('this.clickingBtn', this.clickingBtn);
 		if (this.clickingBtn) this.clickingBtn.setAttribute('href', data.clickThrough);
 		this.video.innerHTML = '';
 		source.setAttribute('src', data.mediaFile);
@@ -130,14 +130,24 @@ var _default = (function () {
 	};
 
 	_default.prototype._updateTimeCur = function _updateTimeCur(sec) {
-		var leftTime = Math.floor(this.video.duration - sec),
+		var dur = this.video.duration,
+		    offset = this.data.skipoffset,
+		    leftTime = Math.floor(dur - sec),
 		    text = leftTime ? 'Осталось ' + leftTime + 'сек' : '&nbsp;',
-		    skipTime = Math.round(this.data.skipoffset - sec);
+		    skipTime = Math.round(offset - sec);
 
 		this.advLeft.innerHTML = text;
 
-		if (skipTime > 0 && this.userAgent !== 'iphone') this.skipBtn.innerHTML = 'Пропустить через ' + skipTime; //В айфоне всегда можно закрыть
-		else this.skipBtn.innerHTML = 'Пропустить';
+		if (this.skipBtn && this.skipBtn.innerHTML != 'Пропустить') {
+			if (offset >= dur) {
+				this.skipBtn.style.display = 'none';
+				this.skipBtn = undefined; /* TODO - удалить по уму */
+			} else {
+					if (skipTime > 0 && this.userAgent !== 'iphone') this.skipBtn.innerHTML = 'Пропустить через ' + skipTime; //В айфоне всегда можно закрыть
+					else this.skipBtn.innerHTML = 'Пропустить';
+				}
+		}
+
 		this._checkStat();
 	};
 
@@ -591,14 +601,15 @@ var CombinedPlayer = (function () {
             pathZetcat = '//3647.tech/vpaid/?domain=www.kinoafisha1.info',
             pathMediaForce = '//ads.adfox.ru/220463/getCode?p1=cdbyb&p2=frxu',
             pathIMXO = (function () {
-            var pr = Math.floor(new Date().getTime / 1000) + Math.floor(Math.random() * 214748364);
+            var pr = Math.floor(new Date().getTime() / 1000) + Math.floor(Math.random() * 214748364);
             var placementId = 20651;
             var sessionId = new Date().getTime() + "" + Math.floor(Math.random() * 2147483647);
             var eid1 = placementId + ':' + sessionId + ':' + pr;
+
             //
             return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=' + placementId + '&pr=' + pr + '&dl=http://kinoafisha/test/:' + url + '&eid1=' + eid1;
         })(),
-            pathTestInline = '/vast/inline.xml',
+            pathTestInline = '/vast/skipTime2.xml',
             pathes = {
             'RCA': pathYandex,
             'Videonow': pathVideonow,
@@ -788,6 +799,7 @@ var CombinedPlayer = (function () {
             self.wrapper.className = self.wrapper.className.replace(' js-active-adv', ' js-active-video');
         };
         self.oAdvPlayer.afterClicking = function () {
+            /* отключил, продалжаем проигрывание после клика */
             self.oAdvPlayer.abort();
             self._returnOriginalView.call(self, 'oAdvPlayer');
         };
@@ -1849,17 +1861,40 @@ var VASTTag = (function () {
 	};
 
 	VASTTag.prototype._getSkipoffset = function _getSkipoffset(tag) {
-		var skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
-		if (!skipoffset) return 5;
+		var offset = undefined,
+		    skipoffset = undefined,
+		    skipTime = undefined,
+		    def = 5;
+
+		skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
+		if (!skipoffset) {
+			var ext = tag.querySelector('Extensions');
+			if (ext) {
+				skipTime = ext.querySelector('Extension[type*="skipTime"]').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, ''); //skipTime and skipTime2 TODO
+				if (skipTime) offset = skipTime;
+			}
+		} else offset = skipoffset;
+
+		if (!offset) return def;
 
 		//
-		if (skipoffset.indexOf('%') === -1) {
-			var arr = skipoffset.split(':');
-			var seconds = arr[0] * 60 * 60 + arr[1] * 60 + arr[2] * 1;
+		if (offset.indexOf('%') === -1) {
+			var arr = offset.split(':'),
+			    l = arr.length,
+			    seconds = undefined;
+
+			if (l == 2) {
+				// время без часов TODO в цикле
+				seconds = parseInt(arr[0]) * 60 + parseInt(arr[1]) * 1;
+			} else {
+				seconds = parseInt(arr[0]) * 60 * 60 + parseInt(arr[1]) * 60 + parseInt(arr[2]) * 1;
+			}
+
+			if (seconds == undefined) seconds = def;
 			return seconds;
 		} else {
 			/* TODO % */
-			return 5;
+			return def;
 		}
 	};
 
@@ -1896,7 +1931,8 @@ var VpaidPlayer = (function () {
 		this.wrapper = this.insert.firstChild;
 		this.video = oUPlayer.initVideo;
 		this.slot = this.wrapper.querySelector('[data-js="vpaid-slot"]');
-		this.vpaid = false;this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
+		this.vpaid = false;
+		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */
 		this.isFinish = false;
 		this.isAdLoaded = false; /* AdError может сработать до AdLoaded TODO (может, сделать как то поинтереснее)  */
 		this.isAdClickThru = false; /* кликнул или нет пользователь по рекламе. Если кликнул - видео не производим */

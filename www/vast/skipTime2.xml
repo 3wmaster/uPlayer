@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<VAST version="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://specs.adfox.ru/uploads/vast.xsd">
+ <Ad id="2835113">
+  <InLine>
+   <AdSystem version="1.0">AdFox IMHO</AdSystem>
+   <AdTitle>VAST Ad</AdTitle>
+   <Error><![CDATA[https://v.adfox.ru/226279/event?hash=897a78a7324ba24a&pm=u&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=dvihroh&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html@https://www.tns-counter.ru/V13a****imhovi_mobile/ru/CP1251/tmsec=imhovi_totaldm/1549325200]]></Error>
+   <Impression><![CDATA[https://v.adfox.ru/226279/event?hash=8a9296442f8d9041&pm=b&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=ehldfdn&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Impression>
+   <Impression><![CDATA[]]></Impression>
+   <Impression><![CDATA[]]></Impression>
+   <Impression><![CDATA[]]></Impression>
+   <Impression><![CDATA[]]></Impression>
+   <Impression><![CDATA[https://www.tns-counter.ru/V13a****imhovi_mobile/ru/CP1251/tmsec=imhovi_totaldm/1549325200]]></Impression>
+   <!--Impression><![CDATA[https://www.tns-counter.ru/V13a****vitpc_ad/ru/CP1251/tmsec=vitpc_monitoring-1/1549325200]]></Impression-->
+   <Impression><![CDATA[https://www.tns-counter.ru/V13a****vitpc_mobile/ru/CP1251/tmsec=vitpc_sc41601-fl918650/1549325200]]></Impression>
+   <Impression><![CDATA[https://www.tns-counter.ru/V13a**crid:2835113**cat_ad/ru/UTF-8/tmsec=catad_imho/1549325200]]></Impression>
+   <Impression><![CDATA[https://www.tns-counter.ru/V13a****vitpc_mobile/ru/CP1251/tmsec=vitpc_sid50424-vitid1/1549325200]]></Impression>
+   <Impression><![CDATA[https://wam.solution.weborama.fr/fcgi-bin/dispatch.fcgi?d.A=tp&d.k=wam_segments&d.m=push&d.v=177813]]></Impression>
+   <Impression><![CDATA[https://cstatic.weborama.fr/iframe/external_ids_sync.html]]></Impression>
+   <Impression><![CDATA[https://aimfar.solution.weborama.fr/fcgi-bin/dispatch.fcgi?d.A=rd&d.k=bigsea&d.u=http%3A%2F%2Fdx.bigsea.weborama.com%2Fcollect%3Fdsp_id%3D0%26eid%3D%7BWEBO_ID%7D]]></Impression>
+   <Impression><![CDATA[https://mc.yandex.ru/watch/48668132?page-url=50424%3Futm_source=%26utm_medium=%26utm_campaign=918650%26utm_content=2835113%26utm_term=41601&page-ref=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Impression>
+   <Impression><![CDATA[https://www.tns-counter.ru/V13a****vitpc_ad/ru/CP1251/tmsec=vitpc_counter-1/1549325200]]></Impression>
+   <Impression><![CDATA[https://www.tns-counter.ru/V13a****vitpc_ad/ru/CP1251/tmsec=vitpc_video-50424/1549325200]]></Impression>
+   <Creatives>
+    <Creative id="2835113/918650">
+     <Linear>
+      <Duration>00:00:20</Duration>
+      <TrackingEvents>
+       <Tracking event="creativeView"><![CDATA[https://v.adfox.ru/226279/event?hash=dff7b6eb4b5a7d8f&pm=c&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=bkljdqc&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="start"><![CDATA[https://v.adfox.ru/226279/event?hash=b4604ad75d7493c9&pm=d&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=lqzghob&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="start"><![CDATA[]]></Tracking>
+       <Tracking event="firstQuartile"><![CDATA[https://v.adfox.ru/226279/event?hash=6ca89b45a3dc4e3f&pm=e&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=jtftbxc&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="firstQuartile"><![CDATA[]]></Tracking>
+       <Tracking event="midpoint"><![CDATA[https://v.adfox.ru/226279/event?hash=8604af48919cc763&pm=f&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=mpvrape&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="midpoint"><![CDATA[]]></Tracking>
+       <Tracking event="thirdQuartile"><![CDATA[https://v.adfox.ru/226279/event?hash=354aa30a42650c87&pm=g&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=fotksa&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="thirdQuartile"><![CDATA[]]></Tracking>
+       <Tracking event="complete"><![CDATA[https://v.adfox.ru/226279/event?hash=595bf7fced1350ce&pm=h&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=bxhifhk&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="complete"><![CDATA[]]></Tracking>
+       <Tracking event="complete"><![CDATA[https://mc.yandex.ru/pixel/221610915015527953?rnd=1549325200]]></Tracking>
+       <Tracking event="mute"><![CDATA[https://v.adfox.ru/226279/event?hash=9e7b18a7ccb12bfc&pm=i&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=imbhdha&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="unmute"><![CDATA[https://v.adfox.ru/226279/event?hash=1ba7e4d8011087a5&pm=j&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=emqsiwb&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="pause"><![CDATA[https://v.adfox.ru/226279/event?hash=ee4fa42af276afa6&pm=k&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=kqrbkne&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="rewind"><![CDATA[https://v.adfox.ru/226279/event?hash=c27aaec58685f43a&pm=l&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=msynhpe&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="resume"><![CDATA[https://v.adfox.ru/226279/event?hash=4aa81df9065b97b4&pm=m&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=dposjqw&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="fullscreen"><![CDATA[https://v.adfox.ru/226279/event?hash=56f9c4155883a954&pm=n&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=dbxrien&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="expand"><![CDATA[https://v.adfox.ru/226279/event?hash=ab849cba8b182e3b&pm=o&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=kvcabls&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="collapse"><![CDATA[https://v.adfox.ru/226279/event?hash=dbd354a55445d09c&pm=p&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=hkenemd&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="acceptInvitation"><![CDATA[https://v.adfox.ru/226279/event?hash=f0477558a9784617&pm=q&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=ktouipp&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+       <Tracking event="close"><![CDATA[https://v.adfox.ru/226279/event?hash=e0bd1a8f0681fc46&pm=r&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p5=gfhyv&p1=cdhwi&pr=nxmrlxv&p2=eyit&puid5=1&puid6=1&rand=htczcxw&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&lts=fakkbeu&puid30=20651&eid1=20651%3A15493251974841010788274%3ANaN&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+      </TrackingEvents>
+      <VideoClicks>
+       <ClickThrough><![CDATA[https://v.adfox.ru/226279/goLink?eid1=20651%3A15493251974841010788274%3ANaN&puid30=20651&p5=gfhyv&p2=eyit&sj=UeU0pJCRh0tOtaf4yY1z_r2piYyoWAkIJcj2UTE2YyVWVaUI2V-m1X_kBbrK9UW0vPzk2Q8obrGcuBY4-0S0H4p8g1EdI-crLGJZYRQI1A%3D%3D&p1=cdhwi&pr=nxmrlxv&rand=nmkqxyd&rqs=t3T2JwQAAACQ01hcHC5EvqdALMKTGOcO&puid5=1&puid6=1&hash=8237011ebe18b5c3&dl=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html@http://www.pergo.ru/]]></ClickThrough>
+      </VideoClicks>
+      <MediaFiles>
+       <MediaFile id="1" delivery="progressive" type="video/mp4" bitrate="1266" maintainAspectRatio="false" scalable="true" width="720" height="400"><![CDATA[https://vipk-cache.cdnvideo.ru/imho_cdn/testovyj/hundebad/59a54e7469fde25ffa786d54.mp4]]></MediaFile>
+      </MediaFiles>
+     </Linear>
+    </Creative>
+   </Creatives>
+   <Extensions>
+    <Extension type="Urlmod" scope="" method="" final="false">
+     <urlpart><![CDATA[]]></urlpart>
+    </Extension>
+    <Extension type="CustomTracking">
+     <Tracking event="onVastLoad"><![CDATA[https://www.tns-counter.ru/V13a****imhovi_mobile/ru/CP1251/tmsec=imhovi_totaldm/1549325200]]></Tracking>
+     <!--Tracking event="onVastLoad"><![CDATA[https://www.tns-counter.ru/V13a****vitpc_ad/ru/CP1251/tmsec=vitpc_monitoring-1/1549325200]]></Tracking-->
+     <Tracking event="onVastLoad"><![CDATA[https://www.tns-counter.ru/V13a****vitpc_ad/ru/CP1251/tmsec=vitpc_counter-1/1549325200]]></Tracking>
+     <Tracking event="onVastLoad"><![CDATA[https://www.tns-counter.ru/V13a****vitpc_ad/ru/CP1251/tmsec=vitpc_video-50424/1549325200]]></Tracking>
+     <Tracking event="onVastLoad"><![CDATA[https://wam.solution.weborama.fr/fcgi-bin/dispatch.fcgi?d.A=tp&d.k=wam_segments&d.m=push&d.v=177813]]></Tracking>
+     <Tracking event="onVastLoad"><![CDATA[https://mc.yandex.ru/watch/48668432?page-url=50424%3Futm_source=%26utm_medium=20651:15493251974841010788274:NaN%26utm_campaign=918650%26utm_content=2835113%26utm_term=41601&page-ref=http%3A%2F%2Fkinoafisha%2Ftest%2F%3Ahttps%3A%2F%2Fwww.kinoafisha.info%2Fstatic%2Fhtml%2Ftmp%2Fpreroll-IMXO.html]]></Tracking>
+     <Tracking event="onVastLoad"><![CDATA[https://www.tns-counter.ru/V13a****vitpc_mobile/ru/CP1251/tmsec=vitpc_sid50424-vitid1/1549325200]]></Tracking>
+    </Extension>
+    <Extension type="skipTime2"><![CDATA[03:05]]></Extension>
+   </Extensions>
+  </InLine>
+ </Ad>
+</VAST>
