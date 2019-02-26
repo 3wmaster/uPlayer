@@ -267,6 +267,7 @@ var CombinedPlayer = (function () {
         this.name = this.data.name;
         this.countPLayers = 0;
         this.isShowAdv = this.data.adv === 'hide' ? false : true;
+        this.adsPathes = []; /* массив с путями рекламы  По порядку обращаемся к каждому пока не получим полож ответ*/
         this._insertHTML(wrapper); /*  */
         this.btn = this.wrapper.querySelector('[data-CombinedPlayer-btn]');
         this.isMobileAgent = this._defineUserAgent();
@@ -528,7 +529,6 @@ var CombinedPlayer = (function () {
             pathOptAd360 = '//ima3vpaid.appspot.com/?adTagUrl=https%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fclient%3Dca-video-pub-5512390705137507%26slotname%3D9018911080%2F5952557309%26ad_type%3Dvideo%26description_url%3Dhttp%253A%252F%252Fkinoafisha.info%26max_ad_duration%3D60000%26videoad_start_delay%3D0&type=js' + '&rnd=' + curTime,
             pathOptAd3602 = '//googleads.g.doubleclick.net/pagead/ads?client=ca-video-pub-5512390705137507&slotname=9018911080/5952557309&ad_type=video&description_url=http%3A%2F%2Fkinoafisha.info&max_ad_duration=60000&videoad_start_delay=0' + '&rnd=' + curTime,
             pathMediawayss = '//ad.mediawayss.com/delivery/impress?video=vast&pzoneid=823&ch=DOMAIN_HERE' + '&rnd=' + curTime,
-            pathUnion = '//stats.utraff.com/index.php?r=adv/vast&host_id=1945&rand' + curTime,
             pathPladform = (function () {
             var pl = '110461',
                 type = 'preroll',
@@ -615,7 +615,6 @@ var CombinedPlayer = (function () {
             'Videonow': pathVideonow,
             'Mediawayss': pathMediawayss,
             'InVideo': pathInVideo,
-            'UnionTraff': pathUnion,
             'Moevideo': pathMoevideo,
             'Moevideo2': pathMoevideo2,
             'Pladform': pathPladform,
@@ -629,7 +628,6 @@ var CombinedPlayer = (function () {
         },
             agents = (function () {
             if (self.data.ads.agents) {
-                console.log('data.self');
                 return self.data.ads.agents;
             }
             if (self.data.youtube) {
@@ -672,7 +670,7 @@ var CombinedPlayer = (function () {
 
             //return '//pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=' + curTime;
 
-            if (_this2.data.dev) {
+            /*if (_this2.data.dev) {
                 if (_this2.data.dev === 'vpaidJsTest') return pathVpaidJsTest;
                 if (_this2.data.dev === 'vastGoogleTest') return pathVastGoogleTest;
                 if (_this2.data.dev === 'yandex') return pathYandex;
@@ -694,7 +692,7 @@ var CombinedPlayer = (function () {
                 if (_this2.data.dev === 'Adbetnet') return pathAdbetnet;
                 if (_this2.data.dev === 'MarketPlace') return pathMarketPlace;
                 if (_this2.data.dev === 'Xameleon') return pathXameleon;
-            }
+            }*/
 
             //
             //return pathes[Math.floor(Math.random() * (pathes.length))];
@@ -711,7 +709,8 @@ var CombinedPlayer = (function () {
                 }
             } catch(e){};*/
 
-            return pathes[agent];
+            /* TODO */
+            if (!pathes[agent]) throw new Error('Имя рекламного агента не найдено');else return pathes[agent];
         })(),
             _getOur = function _getOur() {
             /* TODO пока отключил, чет не работает */
@@ -732,6 +731,40 @@ var CombinedPlayer = (function () {
             else self._start.call(self);*/
         };
 
+        this.adsPathes.push({ name: 'IMXO', path: pathIMXO });
+        this.adsPathes.push({ name: agent, path: path });
+
+        console.log('adsPathes', this.adsPathes);
+
+        this._checkAdsPath(0);
+    };
+
+    /* больше не запрашиваем данные */
+    /*_onSuccessGetHtmlData(data){
+        var self = this;
+          self.oHTMLPlayer = new HTMLPlayer(self, data);
+        self.oHTMLPlayer.afterEnd = function(){
+            self._returnOriginalView.call(self, 'oHTMLPlayer');
+        }
+        self._checkInitPlayers.call(self);
+    }*/
+
+    /* Путей может быть несколько. Если первый */
+
+    CombinedPlayer.prototype._checkAdsPath = function _checkAdsPath(ind) {
+        if (this.adsPathes[ind]) {
+            this._getAdsData(this.adsPathes[ind], ind);
+        } else {
+            console.log('Ни у кого нет рекламы - запускаем видео');
+            this._start();
+        }
+    };
+
+    CombinedPlayer.prototype._getAdsData = function _getAdsData(ads, ind) {
+        var self = this,
+            path = ads.path,
+            agent = ads.name;
+
         if (1 == 2) {
 
             new _jsIMA.IMA({
@@ -743,7 +776,7 @@ var CombinedPlayer = (function () {
                 }
             });
         } else {
-            console.log('agent', agent);
+            console.log('Запрашиваем рекламу по адресу', path);
             new _jsVASTTag.VASTTag({
                 path: path,
                 onVast: function onVast(data) {
@@ -756,28 +789,20 @@ var CombinedPlayer = (function () {
                 },
                 onError: function onError() {
                     /* например, блокировщик рекламы */
-                    _getOur();
+                    self._checkAdsPath.call(self, ind + 1);
+                    //_getOur();
                 }
             });
-
-            /* TODO Отправдляем нашу стату - какой агент пробует показать рекламу */
-            var image = document.createElement('IMG'),
-                path = window.location.hostname.indexOf('kinoafishaspb.ru') === -1 ? 'kinoafisha.info' : 'kinoafishaspb.ru';
-            image.src = 'https://api.' + path + '/player/statad/?source=' + agent;
-            image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
-            document.body.appendChild(image);
         }
+
+        /* TODO Отправдляем нашу стату - какой агент пробует показать рекламу */
+        console.log('Отправдляем нашу стату - какой агент пробует показать рекламу', agent);
+        var image = document.createElement('IMG'),
+            path = window.location.hostname.indexOf('kinoafishaspb.ru') === -1 ? 'kinoafisha.info' : 'kinoafishaspb.ru';
+        image.src = 'https://api.' + path + '/player/statad/?source=' + agent;
+        image.style.cssText = 'visibility:hidden;position:absolute;left:-9999px;top:-9999px;display:block;width:1px;height:1px;overflow:hidden;';
+        document.body.appendChild(image);
     };
-
-    /* больше не запрашиваем данные */
-    /*_onSuccessGetHtmlData(data){
-        var self = this;
-          self.oHTMLPlayer = new HTMLPlayer(self, data);
-        self.oHTMLPlayer.afterEnd = function(){
-            self._returnOriginalView.call(self, 'oHTMLPlayer');
-        }
-        self._checkInitPlayers.call(self);
-    }*/
 
     CombinedPlayer.prototype._onSuccessGetVpaidData = function _onSuccessGetVpaidData(data) {
         var self = this;
