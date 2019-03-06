@@ -607,7 +607,8 @@ var CombinedPlayer = (function () {
             var eid1 = placementId + ':' + sessionId + ':' + pr;
 
             //
-            return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=' + placementId + '&pr=' + pr + '&dl=http://kinoafisha/test/:' + url + '&eid1=' + eid1;
+            //return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30='+placementId+'&pr='+ pr +'&dl=http://kinoafisha/test/:' + url + '&eid1=' + eid1;
+            return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=defw&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=' + placementId + '&pr=' + pr + '&dl=' + url + '&eid1=' + eid1;
         })(),
             pathTestInline = '/vast/skipTime2.xml',
             pathes = {
