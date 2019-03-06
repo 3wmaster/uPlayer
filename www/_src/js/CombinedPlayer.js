@@ -373,6 +373,7 @@ var CombinedPlayer =  class {
 
             })(),
             pathTestInline = '/vast/skipTime2.xml',
+            pathBuzz = 'https://exchange.buzzoola.com/adv/XKYmYyY14N2pRGnNCin2lFnVhCe4YbrSx0WXUsRQiAg/jsvpaid',
             pathes = {
                 'RCA': pathYandex,
                 'Videonow': pathVideonow,
@@ -387,7 +388,8 @@ var CombinedPlayer =  class {
                 'Zetcat': pathZetcat,
                 'MediaForce': pathMediaForce,
                 'IMXO': pathIMXO,
-                'TestInline': pathTestInline
+                'TestInline': pathTestInline,
+                'Buzz': pathBuzz
             },
             agents = (function () {
                 if (self.data.ads.agents) {

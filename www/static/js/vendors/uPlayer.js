@@ -611,6 +611,7 @@ var CombinedPlayer = (function () {
             return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=defw&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=' + placementId + '&pr=' + pr + '&dl=' + url + '&eid1=' + eid1;
         })(),
             pathTestInline = '/vast/skipTime2.xml',
+            pathBuzz = 'https://exchange.buzzoola.com/adv/XKYmYyY14N2pRGnNCin2lFnVhCe4YbrSx0WXUsRQiAg/jsvpaid',
             pathes = {
             'RCA': pathYandex,
             'Videonow': pathVideonow,
@@ -625,7 +626,8 @@ var CombinedPlayer = (function () {
             'Zetcat': pathZetcat,
             'MediaForce': pathMediaForce,
             'IMXO': pathIMXO,
-            'TestInline': pathTestInline
+            'TestInline': pathTestInline,
+            'Buzz': pathBuzz
         },
             agents = (function () {
             if (self.data.ads.agents) {
