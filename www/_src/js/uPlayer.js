@@ -15,7 +15,7 @@ export default function (root, doc){
     uPlayer.abortAll = function(cur){
       for (var name in uPlayer.all){
           var player =  uPlayer.all[name];
-          if(cur !== player) player.abort();
+          if(cur !== player) player.abort(); 
       }
     };
 

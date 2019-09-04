@@ -602,16 +602,20 @@ var CombinedPlayer = (function () {
             pathMediaForce = '//ads.adfox.ru/220463/getCode?p1=cdbyb&p2=frxu',
             pathIMXO = (function () {
             var pr = Math.floor(new Date().getTime() / 1000) + Math.floor(Math.random() * 214748364);
-            var placementId = 20651;
+            var placementId = 21834;
             var sessionId = new Date().getTime() + "" + Math.floor(Math.random() * 2147483647);
             var eid1 = placementId + ':' + sessionId + ':' + pr;
+            var dlCode = 'http://kinoafisha.info/default/';
+            var dl = dlCode + ':' + url;
 
             //
             //return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30='+placementId+'&pr='+ pr +'&dl=http://kinoafisha/test/:' + url + '&eid1=' + eid1;
-            return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=defw&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=' + placementId + '&pr=' + pr + '&dl=' + url + '&eid1=' + eid1;
+            return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=defw&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30=' + placementId + '&pr=' + pr + '&dl=' + dl + '&eid1=' + eid1;
         })(),
-            pathTestInline = '/vast/skipTime2.xml',
-            pathBuzz = 'https://exchange.buzzoola.com/adv/XKYmYyY14N2pRGnNCin2lFnVhCe4YbrSx0WXUsRQiAg/jsvpaid',
+            pathTestInline = '/vast/skipTime2.xml' + '?rnd=' + curTime,
+            pathBuzz = '//exchange.buzzoola.com/adv/XKYmYyY14N2pRGnNCin2lFnVhCe4YbrSx0WXUsRQiAg/jsvpaid',
+            pathAdfox = '//ads.adfox.ru/275464/getCode?p1=cdxbp&p2=ghrm',
+            pathUtraff = '//utraff.com/vpaid/uOrdlHA853PA9ITb7d2iZ5KV6mfZ0SO0kDRGP-rsaOI.xml',
             pathes = {
             'RCA': pathYandex,
             'Videonow': pathVideonow,
@@ -627,7 +631,9 @@ var CombinedPlayer = (function () {
             'MediaForce': pathMediaForce,
             'IMXO': pathIMXO,
             'TestInline': pathTestInline,
-            'Buzz': pathBuzz
+            'Buzz': pathBuzz,
+            'Utraff': pathUtraff,
+            'Adfox': pathAdfox
         },
             agents = (function () {
             if (self.data.ads.agents) {
@@ -734,7 +740,9 @@ var CombinedPlayer = (function () {
             else self._start.call(self);*/
         };
 
-        this.adsPathes.push({ name: 'IMXO', path: pathIMXO });
+        // if(agent !== 'Adfox' && agent !== 'Buzz')
+        this.adsPathes.push({ name: 'IMXO', path: pathTestInline });
+
         this.adsPathes.push({ name: agent, path: path });
 
         console.log('adsPathes', this.adsPathes);
@@ -1750,6 +1758,7 @@ var VASTTag = (function () {
 						_this.data.mediaFile = advFile.file;
 						if (advFile.type == 'mp4') {
 							_this.data.skipoffset = _this._getSkipoffset(adTag);
+							console.log('this.data.skipoffset', _this.data.skipoffset);
 							_this.data.clickThrough = (function () {
 								//TODO if(this.data.clickThrough) return this.data.clickThrough;
 								try {
@@ -1891,15 +1900,14 @@ var VASTTag = (function () {
 	VASTTag.prototype._getSkipoffset = function _getSkipoffset(tag) {
 		var offset = undefined,
 		    skipoffset = undefined,
-		    skipTime = undefined,
 		    def = 5;
 
 		skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
 		if (!skipoffset) {
-			var ext = tag.querySelector('Extensions');
-			if (ext) {
-				skipTime = ext.querySelector('Extension[type*="skipTime"]').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, ''); //skipTime and skipTime2 TODO
-				if (skipTime) offset = skipTime;
+			try {
+				offset = tag.querySelector('Extensions').querySelector('Extension[type*="skipTime"]').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, ''); //skipTime and skipTime2 TODO
+			} catch (e) {
+				return def;
 			}
 		} else offset = skipoffset;
 

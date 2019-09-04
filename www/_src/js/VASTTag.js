@@ -69,6 +69,7 @@ class VASTTag {
 						this.data.mediaFile = advFile.file;
 						if(advFile.type == 'mp4'){
                             this.data.skipoffset = this._getSkipoffset(adTag);
+                            console.log('this.data.skipoffset', this.data.skipoffset);
                             this.data.clickThrough = (function(){
                             	//TODO if(this.data.clickThrough) return this.data.clickThrough;
                             	try{
@@ -204,16 +205,15 @@ class VASTTag {
     _getSkipoffset(tag) {
 		var offset = undefined,
 			skipoffset = undefined,
-			skipTime = undefined,
 			def = 5;
 
         skipoffset = tag.querySelector('Linear').getAttribute('skipoffset');
         if (!skipoffset){
-        	var ext = tag.querySelector('Extensions');
-        	if(ext){
-                skipTime = ext.querySelector('Extension[type*="skipTime"]').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, ''); //skipTime and skipTime2 TODO
-				if(skipTime) offset = skipTime;
-        	}
+        	try {
+                offset = tag.querySelector('Extensions').querySelector('Extension[type*="skipTime"]').childNodes[0].wholeText.replace(/^\s+/, '').replace(/\s+$/, '');
+			} catch(e){
+        		return def;
+			}
 		} else offset = skipoffset;
 
         if (!offset) return def;
