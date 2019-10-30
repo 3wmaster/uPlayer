@@ -272,8 +272,9 @@ var CombinedPlayer =  class {
 
             //Можно использовать даже боевой тег, добавив в него параметры- вот так http://data.videonow.ru/?profile_id=695851&format=vast&vpaid=1&flash=0 - отдается наш JS-VPID
             pathVpaidJsTest = 'http://rtr.innovid.com/r1.5554946ab01d97.36996823;cb=%25%CACHEBUSTER%25%25?1=1',
-            pathGoogle = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinearvpaid2js&correlator=' + curTime,
-            pathGoogleTest = '//ima3vpaid.appspot.com/?adTagUrl=http%3A%2F%2Fgoogleads.g.doubleclick.net%2Fpagead%2Fads%3Fad_type%3Dvideo%26client%3Dca-video-pub-4968145218643279%26videoad_start_delay%3D0%26description_url%3Dhttp%253A%252F%252Fwww.google.com%26hl%3Den%26max_ad_duration%3D30000%26adtest%3Don&type=js',
+            pathGoogleTest = (function(){
+                return 'https://pubads.g.doubleclick.net/gampad/ads?correlator='+ curTime +'&iu=/21624868510/ka/ka_preroll&env=vp&gdfp_req=1&output=vast&sz=640x480&description_url=https%3A%2F%2Fkinoafisha.info&tfcd=0&npa=0&vpmute=1&vpa=1&vad_format=linear&hl=ru&url=https%3A%2F%2Fkinoafisha.info&vpos=preroll&unviewed_position_start=1';
+            })(),
             pathBoosterTest = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
             pathBoosterTestPopcorn = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaWpZNmdpdzUxa3Bhc09BQWhRdXpJa3c9PQ==&autoplay=1&url=' + url,
             pathBooster = '//boostervideo.ru/vast_vpaid/vast?hash=MzI3b1RNQ2F2dlVVT3RweFZydHZsWGhoaXRtQ1JFR0puUmxhbTZxaVUvZTlPNm9sM2s4UkJkdC9TWk4rNGVWaUZ6TXNZWUpEQ283UWFTZXpXRG5LU2c9PQ==&url=' + url + '&autoplay=1&hideSkipButton=0&overroll=1' + '&rnd=' + curTime,
@@ -374,6 +375,16 @@ var CombinedPlayer =  class {
                 return 'https://v.adfox.ru/226279/getCode?pp=eez&ps=defw&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30='+placementId+'&pr='+ pr +'&dl=' + dl + '&eid1=' + eid1;
 
             })(),
+            pathIMXOMobileTest = (function(){
+                var pr = Math.floor(new Date().getTime()/1000) + Math.floor(Math.random()*214748364);
+                var placementId = 20832;
+                var sessionId = new Date().getTime() + "" + Math.floor(Math.random()*2147483647);
+                var eid1 = placementId + ':' + sessionId + ':' + pr;
+                var dlCode = 'http://kinoafisha/test_mob/';
+                var dl = dlCode + ':' + url;
+
+                return '//92.242.32.231/226279/getCode?pp=eez&ps=cwpk&p2=eyit&pfc=a&pfb=a&plp=a&pli=a&pop=a&pct=d&puid5=1&puid6=1&puid30='+ placementId +'&dl=' + dl;
+            })(),
             pathTestInline = '/vast/skipTime2.xml' + '?rnd=' + curTime,
             pathBuzz = '//exchange.buzzoola.com/adv/XKYmYyY14N2pRGnNCin2lFnVhCe4YbrSx0WXUsRQiAg/jsvpaid',
             pathAdfox = '//ads.adfox.ru/275464/getCode?p1=cdxbp&p2=ghrm',
@@ -392,10 +403,12 @@ var CombinedPlayer =  class {
                 'Zetcat': pathZetcat,
                 'MediaForce': pathMediaForce,
                 'IMXO': pathIMXO,
+                'IMXOMobileTest': pathIMXOMobileTest,
                 'TestInline': pathTestInline,
                 'Buzz': pathBuzz,
                 'Utraff': pathUtraff,
-                'Adfox': pathAdfox
+                'Adfox': pathAdfox,
+                'GoogleTest': pathGoogleTest
             },
             agents = (function () {
                 if (self.data.ads.agents) {
@@ -504,8 +517,11 @@ var CombinedPlayer =  class {
             };
 
        // if(agent !== 'Adfox' && agent !== 'Buzz')
-        this.adsPathes.push({name:'IMXO', path:pathTestInline});
 
+        //не показываем имхo, если заданы какие-то кокретные рекдламные площадки
+        if(!this.data.ads.agents){
+            this.adsPathes.push({name:'IMXO', path:pathIMXO});
+        }
         this.adsPathes.push({name:agent, path:path});
 
         console.log('adsPathes', this.adsPathes);

@@ -14,6 +14,7 @@ export default class{
         return  '<div data-js="adv-player" class="advPlayer">' + clickingBtn + '<div class="advPlayer_controls">' + '<div class="advPlayer_controlsCell">' + '<span class="advPlayer_param">Реклама.</span> <span data-js="adv-left" class="advPlayer_param">&nbsp;</span>' + '</div>' + '<div class="advPlayer_controlsCell">' + '<a data-js="adv-skip-btn" class="advPlayer_param" href="#">&nbsp;</a>' + '</div>' + '</div>' + '<div class="advPlayer_before">' + '<div class="advPlayer_beforeContent">' + '<div class="advPlayer_beforeContentItem">Реклама</div>' + '</div>' + '</div>' + '<div class="advPlayer_preloader"></div>' + '</div>';
     }
 
+
 	_createElements(oUPlayer, data){
         this.oUPlayer = oUPlayer;
         this.data = data;
@@ -49,7 +50,9 @@ export default class{
 	}
 
 	_addEventsName(){
-		this.eNames = {}
+
+
+	this.eNames = {}
 		if (window.navigator.pointerEnabled) this.eNames = {'down': 'pointerdown', 'move': 'pointermove', 'enter':'pointerenter', 'leave':'pointerleave', 'up': 'pointerup'};
 		else if(window.navigator.msPointerEnabled) this.eNames = {'down': 'MSPointerDown', 'move': 'MSPointerMove', 'enter':'MSPointerEnter', 'leave':'MSPointerLeave', 'up': 'MSPointerUp'};
 		else if('ontouchstart' in document.documentElement) {

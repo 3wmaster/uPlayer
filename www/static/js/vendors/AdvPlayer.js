@@ -57,6 +57,7 @@ var _default = (function () {
 	};
 
 	_default.prototype._addEventsName = function _addEventsName() {
+
 		this.eNames = {};
 		if (window.navigator.pointerEnabled) this.eNames = { 'down': 'pointerdown', 'move': 'pointermove', 'enter': 'pointerenter', 'leave': 'pointerleave', 'up': 'pointerup' };else if (window.navigator.msPointerEnabled) this.eNames = { 'down': 'MSPointerDown', 'move': 'MSPointerMove', 'enter': 'MSPointerEnter', 'leave': 'MSPointerLeave', 'up': 'MSPointerUp' };else if ('ontouchstart' in document.documentElement) {
 			this.eNames = { 'down': 'touchstart', 'move': 'touchmove', 'enter': 'touchstart', 'leave': 'touchend', 'up': 'touchend' };
